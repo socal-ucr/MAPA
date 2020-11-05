@@ -1,0 +1,6 @@
+[submodule "jobGenerator"]
+	path = jobGenerator
+	url = git@github.com:socal-ucr/jobGenerator.git
+[submodule "peregrine"]
+	path = peregrine
+	url = git@github.com:socal-ucr/peregrine.git
