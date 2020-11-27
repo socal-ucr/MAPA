@@ -1,25 +1,35 @@
 #include <algorithm>
+#include <string>
 
 #include "Peregrine.hh"
 
-typename SmallGraph = Peregrine::SmallGraph;
-typename Bandwidth = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
+using SmallGraph = Peregrine::SmallGraph;
+using BwMap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
 
-void populateSymmetry(BW* bwmap)
+BwMap populateSymmetry(BwMap bwmap)
 {
-  for (auto &i: *bwmap)
+  for (auto &i: bwmap)
   {
     for (auto &j: i.second)
     {
       bwmap[j][i] = j.second;
     }
   }
+  return bwmap;
 }
 
 Struct System
 {
   SmallGraph topology;
-  Bandwidth bw;
+  BwMap bwmap;
+  uint32_t idealLastScore;
+
+  template <typename T>
+  System(SmallGraph topo, BwMap bw)
+  {
+    topology = topo;
+    bwmap = bw;
+  }
 };
 
 SmallGraph cubemesh()
@@ -37,12 +47,12 @@ SmallGraph cubemesh()
   edge_list.emplace_back(5, 8);
   edge_list.emplace_back(6, 7);
   edge_list.emplace_back(7, 8);
-  return SmallGraph(edge_list);
+  return const SmallGraph(edge_list);
 }
 
-Bandwidth getBwMat(string sysName)
+BwMap getBwMat(string sysName)
 {
-  Bandwidth bwmap;
+  BwMap bwmap;
   switch (sysName)
   {
   case "dgx-v":
@@ -80,21 +90,29 @@ Bandwidth getBwMat(string sysName)
     bwmap[6][8] = 20;
     bwmap[7][8] = 20;
     break;
+  case "summit":
+    bwmap[1][2] = 20;
+    bwmap[2][3] = 20;
+    bwmap[3][1] = 20;
+    bwmap[4][5] = 20;
+    bwmap[5][6] = 20;
+    bwmap[6][4] = 20;
+    break;
   }
-  populateSymmetry(bwmap);
+  return const populateSymmetry(bwmap);
 }
 
 template <typename T>
 void summitNode(uint32_t begin, uint32_t end, T* edge_list)
 {
   edge_list->emplace_back(begin, end);
-  while (begine <= end)
+  while (begin <= end)
   {
     edge_list->emplace_back(begin, ++begin);
   }
 }
 
-SmallGraph summit()
+SmallGraph summitTopo()
 {
   std::vector<std::pair<uint32_t, uint32_t>> edge_list;
   uint32_t nodes = 10;
@@ -104,13 +122,9 @@ SmallGraph summit()
     summitNode(1 * node, 3 * node, &edge_list);
     summitNode(4 * node, 6 * node, &edge_list);
   }
-  return SmallGraph(edge_list);
+  return const SmallGraph(edge_list);
 }
 
-System dgx_v;
-
-dgx_v.topology = cubemesh();
-dgx_v.bw = getBwMat("dgx-v");
-
-System dgx_p = dgx_v;
-dgx_p.bw = getBwMat("dgx-p");
+System dgx_v(cubemesh(), getBwMat("dgx-v"));
+System dgx_p(cubemesh(), getBwMat("dgx-p"));
+System summit(summitTopo(), getBwMat("summit"));
