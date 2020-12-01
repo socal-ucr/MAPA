@@ -18,7 +18,7 @@ BwMap populateSymmetry(BwMap bwmap)
   return bwmap;
 }
 
-Struct System
+struct System
 {
   SmallGraph topology;
   BwMap bwmap;

@@ -13,6 +13,7 @@ using NodesList = std::list<Nodes>;
 System sys = dgx_v
 SmallGraph currTopo = dgx_v.topology;
 const SmallGraph hwTopo = currTopo;
+Nodes busyNodes;
 
 struct AllocScore
 {
@@ -41,6 +42,11 @@ struct JobItem
   {
     startTime = t;
   }
+  
+  // void findNode(uint32_t node)
+  // {
+  //   // for (...) find in 
+  // }
 };
 
 using JobVec = std::vector<JobItem>;
@@ -63,11 +69,12 @@ void readJobFile(std::string fname)
       std::cout << token << std::endl;
       line.erase(0, pos + delimiter.length());
     }
-    std::cout << s << std::endl;
+    std::cout << line << std::endl;
   }
   jobFile.close();
 }
 
+// TODO(kiran): add and remove nodes might not be necessary if we are filtering patterns.
 void removeNodes(Nodes nodes)
 {
   Nodes neighbours;
@@ -115,14 +122,71 @@ bool isFinished(JobItem& job, uint32_t cycles)
   return (cycles == currTime);
 }
 
-template <typename Vec&, typename T>
-void moveItem(Vec destVec, Vec sourceVec, T item)
+template <typename Vec, typename T>
+void erase(Vec& sourceVec, T item)
 {
-  destVec.emplace_back(job);
-  sourceVec.erase(std::remove(sourceVec.begin(), sourceVec.end(), job), sourceVec.end());
+  sourceVec.erase(std::remove(sourceVec.begin(), sourceVec.end(), item), sourceVec.end());
 }
 
-void simulate(string jobsFilename)
+template <typename Vec, typename T>
+void moveItem(Vec& destVec, Vec sourceVec, T item)
+{
+  destVec.emplace_back(item);
+  erase(sourceVec, item);
+}
+
+Nodes sort(NodesList patternList)
+{
+  Nodes select;
+  uint32_t lastScore;
+  uint32_t selectLastScore;
+
+  for (auto &pattern : patternList)
+  {
+    lastScore = getLastScore(pattern);
+    if (selectLastScore < lastScore)
+    {
+      select = pattern;
+      selectLastScore = lastScore;
+    }
+  }
+  // TODO(kiran): Check if selectLastScore also need to be returned.
+  return pattern;
+}
+
+Nodes choosePattern(NodesList patternList)
+{
+  // filter patterns.
+  patternList.remove_if(
+    [](auto &pattern) {
+      for (auto& node: busyNodes)
+      {
+        if (pattern.contain(node)
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  );
+  // for (auto &pattern : patternList)
+  // {
+  //   for (auto& node : busyNodes) // Check iterator if it is updated.
+  //   {
+  //     if(pattern.contain(node))
+  //     {
+  //       patternList.remove(pattern);
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
+
+  // Policy-1: Choose the one with highest LAST score.
+  return sort(patternList);
+}
+
+uint32_t simulate(std::string jobsFilename, System sys)
 {
   NodesList possiblePatterns;
 
@@ -139,6 +203,11 @@ void simulate(string jobsFilename)
         if (isFinished(job, cycles))
         {
           moveItem(jobFinished, jobScheduled, job);
+          // addNodes(job.schedGPUs);
+          for (auto &node : job.schedGPUs)
+          {
+            erase(busyNodes, node);
+          }
         }
       }
     }
@@ -152,7 +221,14 @@ void simulate(string jobsFilename)
       allocation = choosePattern(possiblePatterns);
       if (allocation)
       {
-        updateTopo(allocation);
+        // removeNodes(allocation);
+        job.startTime = cycles;
+        // add busy nodes.
+        for (auto&node : allocation)
+        {
+          busyNodes.push_back(node);
+          job.schedGPUs.push_back(node);
+        }
         job.startTime = cycles;
         moveItem(jobScheduled, jobQueue, job);
       }
@@ -162,6 +238,7 @@ void simulate(string jobsFilename)
   return cycles;
 }
 
-void realRun()
-{
-}
+// uint32_t realRun()
+// {
+//   // Add code to take an arbitrary function to schedule via MGAP.
+// }
