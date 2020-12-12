@@ -280,6 +280,8 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
       {
         removeNodes(alloc.pattern);
         job->startTime = cycles;
+        std::cout << "Allocation found" << std::endl;
+        utils::print_vector(alloc.pattern);
         // add busy nodes.
         for (auto& node : alloc.pattern)
         {
