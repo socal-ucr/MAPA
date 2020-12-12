@@ -1,36 +1,11 @@
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "Peregrine.hh"
 
 using SmallGraph = Peregrine::SmallGraph;
 using BwMap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
-
-BwMap populateSymmetry(BwMap bwmap)
-{
-  for (auto &i: bwmap)
-  {
-    for (auto &j: i.second)
-    {
-      bwmap[j][i] = j.second;
-    }
-  }
-  return bwmap;
-}
-
-struct System
-{
-  SmallGraph topology;
-  BwMap bwmap;
-  uint32_t idealLastScore;
-
-  template <typename T>
-  System(SmallGraph topo, BwMap bw)
-  {
-    topology = topo;
-    bwmap = bw;
-  }
-};
 
 SmallGraph cubemesh()
 {
@@ -47,15 +22,50 @@ SmallGraph cubemesh()
   edge_list.emplace_back(5, 8);
   edge_list.emplace_back(6, 7);
   edge_list.emplace_back(7, 8);
-  return const SmallGraph(edge_list);
+  return SmallGraph(edge_list);
 }
 
-BwMap getBwMat(string sysName)
+// template <typename T>
+// void summitNode(uint32_t begin, uint32_t end, T *edge_list)
+// {
+//   edge_list->emplace_back(begin, end);
+//   while (begin <= end)
+//   {
+//     edge_list->emplace_back(begin, ++begin);
+//   }
+// }
+
+// SmallGraph summitTopo()
+// {
+//   std::vector<std::pair<uint32_t, uint32_t>> edge_list;
+//   uint32_t nodes = 10;
+
+//   for (auto node = 1; node <= nodes; ++node)
+//   {
+//     summitNode(1 * node, 3 * node, &edge_list);
+//     summitNode(4 * node, 6 * node, &edge_list);
+//   }
+//   return SmallGraph(edge_list);
+// }
+
+BwMap populateSymmetry(BwMap bwmap)
+{
+  for (auto &i : bwmap)
+  {
+    for (auto &j : i.second)
+    {
+      bwmap[j.first][i.first] = j.second;
+    }
+  }
+  return bwmap;
+}
+
+BwMap getBwMat(std::string sysName)
 {
   BwMap bwmap;
-  switch (sysName)
+  
+  if (sysName == "dgx-v")
   {
-  case "dgx-v":
     bwmap[1][2] = 25;
     bwmap[1][3] = 25;
     bwmap[1][4] = 50;
@@ -71,9 +81,10 @@ BwMap getBwMat(string sysName)
     bwmap[6][7] = 50;
     bwmap[6][8] = 25;
     bwmap[7][8] = 50;
-    break;
+  }
 
-  case "dgx-p":
+  else if (sysName == "dgx-v")
+  {
     bwmap[1][2] = 20;
     bwmap[1][3] = 20;
     bwmap[1][4] = 20;
@@ -89,42 +100,28 @@ BwMap getBwMat(string sysName)
     bwmap[6][7] = 20;
     bwmap[6][8] = 20;
     bwmap[7][8] = 20;
-    break;
-  case "summit":
+  }
+  else if (sysName == "summit")
+  {
     bwmap[1][2] = 20;
     bwmap[2][3] = 20;
     bwmap[3][1] = 20;
     bwmap[4][5] = 20;
     bwmap[5][6] = 20;
     bwmap[6][4] = 20;
-    break;
   }
-  return const populateSymmetry(bwmap);
+  return populateSymmetry(bwmap);
 }
 
-template <typename T>
-void summitNode(uint32_t begin, uint32_t end, T* edge_list)
+struct GpuSystem
 {
-  edge_list->emplace_back(begin, end);
-  while (begin <= end)
+  SmallGraph topology;
+  BwMap bwmap;
+  uint32_t idealLastScore;
+
+  GpuSystem(SmallGraph topo, BwMap bwmap)
   {
-    edge_list->emplace_back(begin, ++begin);
+    topology = topo;
+    bwmap = bwmap;
   }
-}
-
-SmallGraph summitTopo()
-{
-  std::vector<std::pair<uint32_t, uint32_t>> edge_list;
-  uint32_t nodes = 10;
-
-  for (auto node = 1; node <= nodes; ++node)
-  {
-    summitNode(1 * node, 3 * node, &edge_list);
-    summitNode(4 * node, 6 * node, &edge_list);
-  }
-  return const SmallGraph(edge_list);
-}
-
-System dgx_v(cubemesh(), getBwMat("dgx-v"));
-System dgx_p(cubemesh(), getBwMat("dgx-p"));
-System summit(summitTopo(), getBwMat("summit"));
+};

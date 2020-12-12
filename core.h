@@ -1,18 +1,29 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <list>
+
+#include <boost/lexical_cast.hpp>
 
 #include "Peregrine.hh"
+
 #include "GpuTopology.h"
-// #include "MinePattern.hh"
 
-using Nodes = std::list<uint32_t>;
+using Pattern = std::vector<uint32_t>;
 using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
-using NodesList = std::list<Nodes>;
+using PatternVec = std::vector<Pattern>;
+using Nodes = Pattern;
+struct Allocation
+{
+  Pattern pattern;
+  uint32_t lastScore;
+};
 
-System sys = dgx_v
+GpuSystem dgx_v(cubemesh(), getBwMat("dgx-v"));
+
 SmallGraph currTopo = dgx_v.topology;
-const SmallGraph hwTopo = currTopo;
+SmallGraph hwTopo = currTopo;
+BwMap bwmap;
 Nodes busyNodes;
 
 struct AllocScore
@@ -23,13 +34,14 @@ struct AllocScore
   Nodes antiVertices;
   EdgeList edges;
   EdgeList antiEdges;
-}
+};
 
 struct JobItem
 {
   int numGpus;
-  SmallGraph pattern;
-  std::vector<int> schedGPUs;
+  std::string topology;
+  std::vector<SmallGraph> pattern;
+  std::vector<uint32_t> schedGPUs;
   uint32_t arvlTime; // Time to move from list to queue.
   uint32_t srvcTime;
   bool bwSensitive;
@@ -38,18 +50,34 @@ struct JobItem
   uint32_t endTime; // Time from Scheduled to Finished.
   uint32_t runtime; // EndTime - arvlTime.
 
-  void insertStartTime(uint32_t t)
+  JobItem(std::list<std::string> args)
   {
-    startTime = t;
+    std::list<std::string>::iterator argsIt = args.begin();
+    // Advance the iterator by 2 positions,
+    numGpus = boost::lexical_cast<int>(*argsIt);
+    // pattern = reinterpret_cast<std::string>(args[1]);
+    topology = *(++argsIt);
+    arvlTime = boost::lexical_cast<uint32_t>(*(++argsIt));
+    srvcTime = boost::lexical_cast<uint32_t>(*(++argsIt));
+    bwSensitive = boost::lexical_cast<bool>(*(++argsIt));
+
+    // Note: Unsure if this can check anti-edges.
+    if(topology == "ring")
+    {
+      pattern.emplace_back(Peregrine::PatternGenerator::ring(numGpus));
+    }
+    else if (topology == "clique")
+    {
+      pattern.emplace_back(Peregrine::PatternGenerator::clique(numGpus));
+    }
+    else if (topology == "star")
+    {
+      pattern.emplace_back(Peregrine::PatternGenerator::star(numGpus));
+    }
   }
-  
-  // void findNode(uint32_t node)
-  // {
-  //   // for (...) find in 
-  // }
 };
 
-using JobVec = std::vector<JobItem>;
+using JobVec = std::vector<JobItem*>;
 JobVec jobList;
 JobVec jobQueue;
 JobVec jobScheduled;
@@ -57,28 +85,39 @@ JobVec jobFinished;
 
 void readJobFile(std::string fname)
 {
-  ifstream jobFile(fname);
+  // Format: numGpus, topology, arrivalTime, executionTime, bwSensitivity
+  std::ifstream jobFile(fname);
+  std::string line;
+  std::list<std::list<std::string>> jobs;
   while (getline(jobFile, line))
   {
     std::string delimiter = ",";
     size_t pos = 0;
-    std::string<std::string> token(4);
+    std::string token;
+    std::list<std::string> job;
     while ((pos = line.find(delimiter)) != std::string::npos)
     {
       token = line.substr(0, pos);
-      std::cout << token << std::endl;
+      job.emplace_back(token);
       line.erase(0, pos + delimiter.length());
     }
-    std::cout << line << std::endl;
+    job.emplace_back(line);
+    jobs.emplace_back(job);
   }
   jobFile.close();
+
+  for (auto j : jobs)
+  {
+    JobItem job(j);
+    jobList.emplace_back(&job);
+  }
 }
 
 // TODO(kiran): add and remove nodes might not be necessary if we are filtering patterns.
-void removeNodes(Nodes nodes)
+void removeNodes(Pattern pattern)
 {
   Nodes neighbours;
-  for (auto &node : nodes)
+  for (auto &node : pattern)
   {
     neighbours = currTopo.get_neighbours(node);
     for (auto& neighbour: neighbours)
@@ -88,10 +127,10 @@ void removeNodes(Nodes nodes)
   }
 }
 
-void addNodes(Nodes nodes)
+void addNodes(Pattern pattern)
 {
   Nodes neighbours;
-  for (auto &node : nodes)
+  for (auto &node : pattern)
   {
     neighbours = hwTopo.get_neighbours(node);
     for (auto &neighbour : neighbours)
@@ -101,24 +140,37 @@ void addNodes(Nodes nodes)
   }
 }
 
-size_t getLastScore(NodesList possiblePatterns)
+EdgeList getEdges(Pattern pattern, std::string topology)
 {
-  size_t lastScore = 0;
-  for (auto &pattern : possiblePatterns)
+  EdgeList elist;
+  if (topology == "ring")
   {
-    edgeList = hwTopo.get_edges(pattern);
-    for (auto &edge: edgeList)
+    uint32_t prev = pattern[0];
+    for (size_t i = 1; i < pattern.size(); i++)
     {
-      lastScore += sys.bwMap[edge.first][edge.second];
+      elist.push_back(std::make_pair(prev, pattern[i]));
+      prev = pattern[i];
     }
   }
+  return elist;
 }
 
-bool isFinished(JobItem& job, uint32_t cycles)
+uint32_t getLastScore(Pattern pattern, std::string topology)
+{
+  uint32_t lastScore = 0;
+  EdgeList elist = getEdges(pattern, topology);
+  for (auto &edge : elist)
+  {
+    lastScore += bwmap[edge.first][edge.second];
+  }
+  return lastScore;
+}
+
+bool isFinished(JobItem* job, uint32_t cycles)
 {
   uint32_t currTime;
-  currTime = job.startTime + job.srvcTime;
-  job.endTime = cycles;
+  currTime = job->startTime + job->srvcTime;
+  job->endTime = cycles;
   return (cycles == currTime);
 }
 
@@ -135,60 +187,65 @@ void moveItem(Vec& destVec, Vec sourceVec, T item)
   erase(sourceVec, item);
 }
 
-Nodes sort(NodesList patternList)
+Allocation largestLastScore(PatternVec patterns, std::string topology)
 {
-  Nodes select;
-  uint32_t lastScore;
-  uint32_t selectLastScore;
+  Allocation alloc;
 
-  for (auto &pattern : patternList)
+  for (auto &pattern : patterns)
   {
-    lastScore = getLastScore(pattern);
-    if (selectLastScore < lastScore)
+    uint32_t currlastScore = getLastScore(pattern, topology);
+    if (alloc.lastScore < currlastScore)
     {
-      select = pattern;
-      selectLastScore = lastScore;
+      alloc.pattern = pattern;
+      alloc.lastScore = currlastScore;
     }
   }
-  // TODO(kiran): Check if selectLastScore also need to be returned.
-  return pattern;
+  return alloc;
 }
 
-Nodes choosePattern(NodesList patternList)
+void findPatterns(SmallGraph hwTopo, std::vector<SmallGraph> appTopo)
+{
+  using namespace Peregrine;
+  size_t nthreads = 1;
+  std::vector<uint32_t> testingVec;
+  const auto callback = [](auto &&handle, auto &&match)
+  {
+    handle.map(match.pattern, 1);
+    utils::store_pattern(match.mapping);
+  };
+  auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(hwTopo, appTopo, nthreads, callback);
+}
+
+Allocation choosePattern(PatternVec patterns, std::string topology)
 {
   // filter patterns.
-  patternList.remove_if(
-    [](auto &pattern) {
-      for (auto& node: busyNodes)
-      {
-        if (pattern.contain(node)
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-  );
-  // for (auto &pattern : patternList)
-  // {
-  //   for (auto& node : busyNodes) // Check iterator if it is updated.
-  //   {
-  //     if(pattern.contain(node))
+  // patterns.remove_if(
+  //   [](auto &pattern) {
+  //     for (auto& node: busyNodes)
   //     {
-  //       patternList.remove(pattern);
-  //       return true;
+  //       if (std::find(pattern.begin(), pattern.end(), node) != pattern.end())
+  //       {
+  //         return true;
+  //       }
   //     }
+  //     return false;
   //   }
-  //   return false;
-  // }
+  // );
 
   // Policy-1: Choose the one with highest LAST score.
-  return sort(patternList);
+  if (!patterns.empty())
+  {
+    return largestLastScore(patterns, topology);
+  }
+  else
+  {
+    return {};
+  }
 }
 
-uint32_t simulate(std::string jobsFilename, System sys)
+uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
 {
-  NodesList possiblePatterns;
+  bwmap = gpuSys.bwmap;
 
   readJobFile(jobsFilename);
 
@@ -203,33 +260,33 @@ uint32_t simulate(std::string jobsFilename, System sys)
         if (isFinished(job, cycles))
         {
           moveItem(jobFinished, jobScheduled, job);
-          // addNodes(job.schedGPUs);
-          for (auto &node : job.schedGPUs)
+          addNodes(job->schedGPUs);
+          for (auto &node : job->schedGPUs)
           {
             erase(busyNodes, node);
           }
         }
       }
     }
-    for (auto i = 0; jobList[i].arvlTime == cycles; ++i)
+    for (auto i = 0; jobList[i]->arvlTime == cycles; ++i)
     {
       jobQueue.emplace_back(jobList[i]);
     }
     for (auto& job : jobQueue)
     {
-      possiblePatterns = MinePattern::search(currTopo, j.pattern);
-      allocation = choosePattern(possiblePatterns);
-      if (allocation)
+      findPatterns(currTopo, job->pattern);
+      Allocation alloc = choosePattern(utils::foundPatterns, job->topology);
+      if (!alloc.pattern.empty())
       {
-        // removeNodes(allocation);
-        job.startTime = cycles;
+        removeNodes(alloc.pattern);
+        job->startTime = cycles;
         // add busy nodes.
-        for (auto&node : allocation)
+        for (auto& node : alloc.pattern)
         {
           busyNodes.push_back(node);
-          job.schedGPUs.push_back(node);
+          job->schedGPUs.push_back(node);
         }
-        job.startTime = cycles;
+        job->startTime = cycles;
         moveItem(jobScheduled, jobQueue, job);
       }
     }
