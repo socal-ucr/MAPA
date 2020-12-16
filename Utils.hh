@@ -11,13 +11,10 @@
 #include "Peregrine.hh"
 #include "Props.hh"
 
-using JobVec = std::vector<JobItem>;
-
-extern JobVec jobList; // Read from file.
+extern BwMap bwmap;
 
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
-extern BwMap bwmap;
 
 void readJobFile(std::string fname)
 {
@@ -68,6 +65,7 @@ void addNodes(Pattern pattern)
   Nodes neighbours;
   for (auto &node : pattern)
   {
+    std::cout << "Getting neigh for " << node << std::endl;
     neighbours = hwTopo.get_neighbours(node);
     for (auto &neighbour : neighbours)
     {
@@ -88,6 +86,11 @@ EdgeList getEdges(Pattern pattern, std::string topology)
       prev = pattern[i];
     }
   }
+  log("Edges", 1);
+  for (auto edge : elist)
+  {
+    std::cout << edge.first << ":" << edge.second << std::endl;
+  }
   return elist;
 }
 
@@ -98,6 +101,7 @@ uint32_t getLastScore(Pattern pattern, std::string topology)
   for (auto &edge : elist)
   {
     lastScore += bwmap[edge.first][edge.second];
+    std::cout << "lastScore[i] " << lastScore << std::endl;
   }
   return lastScore;
 }

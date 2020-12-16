@@ -14,7 +14,6 @@ using Pattern = std::vector<uint32_t>;
 using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
 using PatternVec = std::vector<Pattern>;
 using Nodes = Pattern;
-
 struct Allocation
 {
   Pattern pattern;
@@ -28,11 +27,11 @@ struct Allocation
 
 struct JobItem
 {
-  int numGpus;
-  int id;
+  uint32_t numGpus;
+  uint32_t id;
   std::string topology;
   std::vector<SmallGraph> pattern;
-  std::vector<uint32_t> schedGPUs;
+  std::vector<uint32_t> schedGPUs; //sched nodes maybe?.
   uint32_t arvlTime; // Time to move from list to queue.
   uint32_t srvcTime;
   bool bwSensitive;
@@ -45,7 +44,7 @@ struct JobItem
   {
   }
 
-  JobItem(std::list<std::string> args, int id)
+  JobItem(std::list<std::string> args, int jid)
   {
     std::list<std::string>::iterator argsIt = args.begin();
     // Advance the iterator by 2 positions,
@@ -55,7 +54,7 @@ struct JobItem
     arvlTime = boost::lexical_cast<uint32_t>(*(++argsIt));
     srvcTime = boost::lexical_cast<uint32_t>(*(++argsIt));
     bwSensitive = boost::lexical_cast<bool>(*(++argsIt));
-    id = id; // Size of the jobList at the time of creating this object.
+    id = jid; // Size of the jobList at the time of creating this object.
 
     // Note: Unsure if this can check anti-edges.
     if (topology == "ring")
@@ -82,5 +81,22 @@ struct JobItem
     return getId() == a.getId();
   }
 };
+
+using JobVec = std::vector<JobItem>;
+
+extern JobVec jobList; // Read from file.
+
+SmallGraph currTopo;
+SmallGraph hwTopo;
+BwMap bwmap;
+extern int logging;
+
+void log(std::string str, int level)
+{
+  if (level > 0)
+  {
+    std::cout << "LOG: " << str << std::endl;
+  }
+}
 
 #endif

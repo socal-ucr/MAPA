@@ -18,16 +18,19 @@ SmallGraph cubemesh()
   edge_list.emplace_back(1, 4);
   edge_list.emplace_back(1, 5);
   edge_list.emplace_back(2, 3);
+  edge_list.emplace_back(2, 4);
+  edge_list.emplace_back(2, 6);
   edge_list.emplace_back(3, 4);
+  edge_list.emplace_back(3, 7);
   edge_list.emplace_back(4, 8);
   edge_list.emplace_back(5, 6);
   edge_list.emplace_back(5, 7);
   edge_list.emplace_back(5, 8);
   edge_list.emplace_back(6, 7);
+  edge_list.emplace_back(6, 8);
   edge_list.emplace_back(7, 8);
   return SmallGraph(edge_list);
 }
-
 // template <typename T>
 // void summitNode(uint32_t begin, uint32_t end, T *edge_list)
 // {
@@ -86,7 +89,7 @@ BwMap getBwMat(std::string sysName)
     bwmap[7][8] = 50;
   }
 
-  else if (sysName == "dgx-v")
+  else if (sysName == "dgx-p")
   {
     bwmap[1][2] = 20;
     bwmap[1][3] = 20;
@@ -122,10 +125,10 @@ struct GpuSystem
   BwMap bwmap;
   uint32_t idealLastScore;
 
-  GpuSystem(SmallGraph topo, BwMap bwmap)
+  GpuSystem(SmallGraph topo, BwMap bmap)
   {
     topology = topo;
-    bwmap = bwmap;
+    bwmap = bmap;
   }
 };
 
