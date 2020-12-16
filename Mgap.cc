@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "core.h"
+#include "Mgap.hh"
 
 int main(int argc, char** argv) {
   std::string jobsFilename;

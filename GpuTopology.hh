@@ -1,3 +1,6 @@
+#ifndef GPUTOPOLOGY_H
+#define GPUTOPOLOGY_H
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -125,3 +128,5 @@ struct GpuSystem
     bwmap = bwmap;
   }
 };
+
+#endif
