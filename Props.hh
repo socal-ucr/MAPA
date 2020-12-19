@@ -10,6 +10,8 @@
 
 #include "Peregrine.hh"
 
+constexpr int LOGLEVEL = 1;
+
 using Pattern = std::vector<uint32_t>;
 using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
 using PatternVec = std::vector<Pattern>;
@@ -89,13 +91,49 @@ extern JobVec jobList; // Read from file.
 SmallGraph currTopo;
 SmallGraph hwTopo;
 BwMap bwmap;
-extern int logging;
 
-void log(std::string str, int level)
+void logging(std::string str, int level)
 {
-  if (level > 0)
+  if (level > LOGLEVEL)
   {
     std::cout << "LOG: " << str << std::endl;
+  }
+}
+
+template <typename T>
+void logging(std::vector<T> vec, int level)
+{
+  if (level > LOGLEVEL)
+  {
+    std::string str;
+    std::for_each(vec.begin(), vec.end(), [&](T elem) { str += std::to_string(elem); });
+    std::cout << "LOG: " << str << std::endl;
+  }
+}
+
+template <typename T>
+void logging(std::list<std::pair<T,T>> vec, int level)
+{
+  if (level > LOGLEVEL)
+  {
+    std::for_each(vec.begin(), vec.end(), [&](std::pair<T, T> elem) { std::cout << elem.first << ":" << elem.second << std::endl; });
+  }
+}
+
+void logging(JobVec vec, int level)
+{
+  std::cout << "ID startTime endTime Allocated schedGpus" << std::endl;
+  if (level > LOGLEVEL)
+  {
+    for (auto& elem: vec)
+    {
+      std::cout << elem.id << " " << elem.startTime << " " << elem.endTime << " ";
+      for (auto& node: elem.schedGPUs)
+      {
+        std::cout << node << ",";
+      }
+      std::cout << std::endl;
+    }
   }
 }
 

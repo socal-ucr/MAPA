@@ -9,6 +9,24 @@
 
 using SmallGraph = Peregrine::SmallGraph;
 using BwMap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
+using numGpuMat = std::map<std::string, uint32_t>;
+
+uint32_t getNumGpusPerNode(std::string topoName)
+{
+  if (topoName == "dgx-v")
+  {
+    return 8;
+  }
+  else if (topoName == "dgx-p")
+  {
+    return 8;
+  }
+  // if (topoName == "summit")
+  // {
+  //   return 6;
+  // }
+  return 0;
+}
 
 SmallGraph cubemesh()
 {
@@ -107,15 +125,15 @@ BwMap getBwMat(std::string sysName)
     bwmap[6][8] = 20;
     bwmap[7][8] = 20;
   }
-  else if (sysName == "summit")
-  {
-    bwmap[1][2] = 20;
-    bwmap[2][3] = 20;
-    bwmap[3][1] = 20;
-    bwmap[4][5] = 20;
-    bwmap[5][6] = 20;
-    bwmap[6][4] = 20;
-  }
+  // else if (sysName == "summit")
+  // {
+  //   bwmap[1][2] = 20;
+  //   bwmap[2][3] = 20;
+  //   bwmap[3][1] = 20;
+  //   bwmap[4][5] = 20;
+  //   bwmap[5][6] = 20;
+  //   bwmap[6][4] = 20;
+  // }
   return populateSymmetry(bwmap);
 }
 
@@ -124,11 +142,13 @@ struct GpuSystem
   SmallGraph topology;
   BwMap bwmap;
   uint32_t idealLastScore;
+  uint32_t numGpus;
 
-  GpuSystem(SmallGraph topo, BwMap bmap)
+  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num)
   {
     topology = topo;
     bwmap = bmap;
+    numGpus = num;
   }
 };
 

@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef TOPOUTILS_HH
+#define TOPOUTILS_HH
 
 #include <iostream>
 #include <fstream>
@@ -86,11 +86,8 @@ EdgeList getEdges(Pattern pattern, std::string topology)
       prev = pattern[i];
     }
   }
-  log("Edges", 1);
-  for (auto edge : elist)
-  {
-    std::cout << edge.first << ":" << edge.second << std::endl;
-  }
+  logging("Edges", 1);
+  logging(elist, 1);
   return elist;
 }
 
@@ -101,7 +98,6 @@ uint32_t getLastScore(Pattern pattern, std::string topology)
   for (auto &edge : elist)
   {
     lastScore += bwmap[edge.first][edge.second];
-    std::cout << "lastScore[i] " << lastScore << std::endl;
   }
   return lastScore;
 }

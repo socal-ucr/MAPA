@@ -17,7 +17,8 @@ int main(int argc, char** argv) {
 
   BwMap bwmap = getBwMat("dgx-v");
   SmallGraph topology = cubemesh();
-  GpuSystem gpuSys = GpuSystem(topology, bwmap);
+  uint32_t numGpus = getNumGpusPerNode("dgx-v");
+  GpuSystem gpuSys = GpuSystem(topology, bwmap, numGpus);
 
   totRuntime = simulate(jobsFilename, gpuSys);
   std::cout << "Total Runtime (cycles) " << totRuntime << std::endl;

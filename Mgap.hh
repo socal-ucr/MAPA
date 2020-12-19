@@ -10,7 +10,8 @@
 
 #include "Peregrine.hh"
 #include "GpuTopology.hh"
-#include "Utils.hh"
+#include "TopoUtils.hh"
+#include "MgapPolicies.hh"
 
 Nodes busyNodes;
 JobVec jobList;
@@ -45,34 +46,6 @@ void moveItem(Vec& destVec, Vec& sourceVec, T item)
   erase(sourceVec, item);
 }
 
-Allocation largestLastScore(PatternVec patterns, std::string topology)
-{
-  Allocation alloc;
-
-  for (auto &pattern : patterns)
-  {
-    log("Iterating through Patterns in policy", 1);
-    for (auto i : pattern)
-    {
-      std::cout << i << " " << std::endl;
-    }
-    uint32_t currlastScore = getLastScore(pattern, topology);
-    log("lastScore = " + std::to_string(currlastScore), 1);
-    if (alloc.lastScore < currlastScore)
-    {
-      alloc.pattern = pattern;
-      alloc.lastScore = currlastScore;
-    }
-  }
-  log("Printing selected pattern\n", 1);
-  for (auto i : alloc.pattern)
-  {
-    std::cout << i << " " << std::endl;
-  }
-  std::cout << std::endl;
-  return alloc;
-}
-
 void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
 {
   using namespace Peregrine;
@@ -83,16 +56,10 @@ void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
     handle.map(match.pattern, 1);
     utils::store_pattern(match.mapping);
   };
-  std::cout << "HWtopo = " << std::endl;
-  for (auto &node : topo.v_list())
-  {
-    std::cout << node << " ";
-  }
-  std::cout << std::endl;
   auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(topo, appTopo, nthreads, callback);
 }
 
-Allocation choosePattern(PatternVec patterns, std::string topology)
+Allocation choosePattern(PatternVec patterns, JobItem job)
 {
   // Policy-1: Choose the one with highest LAST score.
   if (!patterns.empty())
@@ -103,7 +70,7 @@ Allocation choosePattern(PatternVec patterns, std::string topology)
                                [busynode](auto &pattern) { return std::find(pattern.begin(), pattern.end(), busynode) != pattern.end(); }),
                      patterns.end());
     }
-    return largestLastScore(patterns, topology);
+    return policyMap[POLICYNAME](patterns, job);
   }
   else
   {
@@ -119,11 +86,13 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
 
   readJobFile(jobsFilename);
 
+  std::cout << "Using Policy: " << POLICYNAME << std::endl;
+
   uint32_t cycles = 0;
 
   while (!jobList.empty() || !jobQueue.empty() || !jobScheduled.empty())
   {
-    log("Cycle = " + std::to_string(cycles), 1);
+    logging("Cycle = " + std::to_string(cycles), 1);
     if (!jobScheduled.empty())
     {
       auto jobIt = jobScheduled.begin();
@@ -131,8 +100,9 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
       {
         if (isFinished(*jobIt, cycles))
         {
-          log("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(cycles), 1);
+          logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(cycles), 1);
           // addNodes(jobIt->schedGPUs);
+          jobIt->endTime = cycles;
           for (auto &node : jobIt->schedGPUs)
           {
             busyNodes.erase(std::remove_if(busyNodes.begin(), busyNodes.end(),
@@ -164,26 +134,26 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
     
     for (auto& job : jobQueue)
     {
-      std::cout << "Available GPUs " << (8 - busyNodes.size()) << std::endl;
-      std::cout << "Required GPUs " << job.numGpus << std::endl;
-      if (job.numGpus > (8 - busyNodes.size()))
+      logging("Available GPUs " + std::to_string(gpuSys.numGpus - busyNodes.size()), 1);
+      logging("Required GPUs " + std::to_string(job.numGpus), 1);
+      if (job.numGpus > (gpuSys.numGpus - busyNodes.size()))
       {
-        std::cout << "Insufficient GPUs" << std::endl;
+        logging("Insufficient GPUs", 1);
         break;
       }
-      log("Finding Allocation for Job " + std::to_string(job.getId()), 1);
+      logging("Finding Allocation for Job " + std::to_string(job.getId()), 2);
       findPatterns(currTopo, job.pattern);
-      utils::print_patterns();
-      auto alloc = choosePattern(utils::foundPatterns, job.topology);
+      // utils::print_patterns();
+      auto alloc = choosePattern(utils::foundPatterns, job);
       utils::clear_patterns();
       if (!alloc.pattern.empty())
       {
         // Check getID() it is returning garbage.
-        log("Scheduled Job " + std::to_string(job.getId()) + "at "+ std::to_string(cycles), 1);
+        logging("Scheduled Job " + std::to_string(job.getId()) + "at "+ std::to_string(cycles), 1);
         // removeNodes(alloc.pattern);
         job.startTime = cycles;
-        std::cout << "Allocation found" << std::endl;
-        utils::print_vector(alloc.pattern);
+        logging("Allocation found", 1);
+        logging(alloc.pattern, 1);
         // add busy nodes. TODO: IMPLEMENT WITH BUSY NODES.
         for (auto& node : alloc.pattern)
         {
@@ -196,6 +166,7 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
     }
     cycles++;
   }
+  logging(jobFinished, 2);
   return cycles;
 }
 
