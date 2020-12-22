@@ -168,13 +168,17 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
     cycles++;
   }
   uint32_t avgLS = 0;
+  double avgFS = 0;
   for (auto& job : jobFinished)
   {
     avgLS += job.alloc.lastScore;
     job.alloc.fragScore = 1 - (static_cast<double>(job.alloc.lastScore) / (static_cast<double>(gpuSys.idealLastScore) * job.numGpus));
+    avgFS += job.alloc.fragScore;
   }
   avgLS /= jobFinished.size();
+  avgFS /= jobFinished.size();
   std::cout << "Average Last Score " << avgLS << std::endl;
+  std::cout << "Average Frag Score " << avgFS << std::endl;
   logresults(jobFinished, 2);
   return cycles;
 }
