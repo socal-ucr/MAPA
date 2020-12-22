@@ -149,6 +149,17 @@ struct GpuSystem
     topology = topo;
     bwmap = bmap;
     numGpus = num;
+    idealLastScore = 0;
+    for (auto &outer : bwmap)
+    {
+      for (auto &inner : outer.second)
+      {
+        if (idealLastScore < inner.second)
+        {
+          idealLastScore = inner.second;
+        }
+      }
+    }
   }
 };
 

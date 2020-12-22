@@ -12,7 +12,7 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
-Allocation largestLastScore(PatternVec patterns, JobItem job)
+Allocation LASTgreedy(PatternVec patterns, JobItem job)
 {
   Allocation alloc;
 
@@ -38,7 +38,7 @@ Allocation largestLastScore(PatternVec patterns, JobItem job)
   return alloc;
 }
 
-Allocation bwSensitiveLastScore(PatternVec patterns, JobItem job)
+Allocation LASTbw(PatternVec patterns, JobItem job)
 {
   Allocation alloc;
 
@@ -134,8 +134,8 @@ Allocation baselineV2(PatternVec patterns, JobItem job)
 }
 
 std::map<std::string, std::function<Allocation(PatternVec, JobItem)>> policyMap =
-    {{"largestLastScore", [](PatternVec patterns, JobItem job) { return largestLastScore(patterns, job); }},
-     {"bwSensitiveLastScore", [](PatternVec patterns, JobItem job) { return bwSensitiveLastScore(patterns, job); }},
+    {{"LASTgreedy", [](PatternVec patterns, JobItem job) { return LASTgreedy(patterns, job); }},
+     {"LASTbw", [](PatternVec patterns, JobItem job) { return LASTbw(patterns, job); }},
      {"baselineV1", [](PatternVec patterns, JobItem job) { return baselineV1(patterns, job); }},
      {"baselineV2", [](PatternVec patterns, JobItem job) { return baselineV2(patterns, job); }}
     };

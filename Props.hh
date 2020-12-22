@@ -21,7 +21,7 @@ struct Allocation
 {
   Pattern pattern;
   uint32_t lastScore;
-  uint32_t fragScore;
+  double fragScore;
   Nodes vertices;
   Nodes antiVertices;
   EdgeList edges;
@@ -128,7 +128,7 @@ void logresults(JobVec vec, int level)
   {
     std::ofstream outFile;
     outFile.open("results.txt");
-    outFile << "ID startTime endTime lastScore schedGpus\n";
+    outFile << "ID startTime endTime lastScore fragScore schedGpus\n";
     for (auto &elem : vec)
     {
       // std::cout << elem.id << " " << elem.startTime << " " << elem.endTime << " ";
@@ -139,7 +139,7 @@ void logresults(JobVec vec, int level)
       // std::cout << std::endl;
 
       std::string str;
-      str = std::to_string(elem.id) + " " + std::to_string(elem.startTime) + " " + std::to_string(elem.endTime) + " " + std::to_string(elem.alloc.lastScore) + " ";
+      str = std::to_string(elem.id) + " " + std::to_string(elem.startTime) + " " + std::to_string(elem.endTime) + " " + std::to_string(elem.alloc.lastScore) + " " + std::to_string(elem.alloc.fragScore) + " ";
       for (auto &node : elem.schedGPUs)
       {
         str += std::to_string(node) + ",";
