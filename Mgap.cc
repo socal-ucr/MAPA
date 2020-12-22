@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
   if (argc == 2)
   {
-    mgapPolicy = "largestLastScore";
+    mgapPolicy = "baselineV1";
   }
   else if (argc == 3)
   {

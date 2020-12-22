@@ -12,8 +12,6 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
-// constexpr char POLICYNAME[] = "bwSensitiveLastScore";
-
 Allocation largestLastScore(PatternVec patterns, JobItem job)
 {
   Allocation alloc;
@@ -84,10 +82,55 @@ Allocation bwSensitiveLastScore(PatternVec patterns, JobItem job)
 
 Allocation baselineV1(PatternVec patterns, JobItem job)
 {
+  // Pass any available alloc based on smallest/available ID.
+  Allocation alloc;
+
+  if (patterns.size())
+  {
+    auto pattern = patterns[0];
+    logging(pattern, 1);
+    alloc.pattern = pattern;
+    alloc.lastScore = getLastScore(pattern, job.topology);
+    alloc.edges = getEdges(alloc.pattern, job.topology);
+    logging("Printing selected pattern\n", 1);
+    logging(alloc.pattern, 1);
+  }
+
+  return alloc;
 }
 
 Allocation baselineV2(PatternVec patterns, JobItem job)
 {
+  // Pass an alloc in the same PCIe root complex, if none fallback to baselineV1.
+  if (patterns.size())
+  {
+    if (job.numGpus < 5)
+    {
+      for (auto &pattern : patterns)
+      {
+        logging(pattern, 1);
+        for (auto node : pattern)
+        {
+          if (((pattern[0] < 5) && (node > 4)) || ((pattern[0] > 4) && (node < 5)))
+          {
+            break;
+          }
+          else
+          {
+            Allocation alloc;
+            alloc.pattern = pattern;
+            alloc.lastScore = getLastScore(pattern, job.topology);
+            alloc.edges = getEdges(alloc.pattern, job.topology);
+            logging("Printing selected pattern\n", 1);
+            logging(alloc.pattern, 1);
+            return alloc;
+          }
+        }
+      }
+    }
+    return baselineV1(patterns, job);
+  }
+  return Allocation {};
 }
 
 std::map<std::string, std::function<Allocation(PatternVec, JobItem)>> policyMap =
