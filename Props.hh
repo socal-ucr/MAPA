@@ -10,6 +10,7 @@
 
 #include "Peregrine.hh"
 
+// TODO(kiran): Implement an enum for LOGLEVEL.
 constexpr int LOGLEVEL = 1;
 
 using Pattern = std::vector<uint32_t>;

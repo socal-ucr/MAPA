@@ -12,7 +12,7 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
-constexpr char POLICYNAME[] = "bwSensitiveLastScore";
+// constexpr char POLICYNAME[] = "bwSensitiveLastScore";
 
 Allocation largestLastScore(PatternVec patterns, JobItem job)
 {
@@ -82,9 +82,19 @@ Allocation bwSensitiveLastScore(PatternVec patterns, JobItem job)
   return alloc;
 }
 
+Allocation baselineV1(PatternVec patterns, JobItem job)
+{
+}
+
+Allocation baselineV2(PatternVec patterns, JobItem job)
+{
+}
+
 std::map<std::string, std::function<Allocation(PatternVec, JobItem)>> policyMap =
     {{"largestLastScore", [](PatternVec patterns, JobItem job) { return largestLastScore(patterns, job); }},
-     {"bwSensitiveLastScore", [](PatternVec patterns, JobItem job){ return bwSensitiveLastScore(patterns,  job); }}
+     {"bwSensitiveLastScore", [](PatternVec patterns, JobItem job) { return bwSensitiveLastScore(patterns, job); }},
+     {"baselineV1", [](PatternVec patterns, JobItem job) { return baselineV1(patterns, job); }},
+     {"baselineV2", [](PatternVec patterns, JobItem job) { return baselineV2(patterns, job); }}
     };
 
 #endif

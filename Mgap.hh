@@ -59,7 +59,7 @@ void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
   auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(topo, appTopo, nthreads, callback);
 }
 
-Allocation choosePattern(PatternVec patterns, JobItem job)
+Allocation choosePattern(PatternVec patterns, JobItem job, std::string mgapPolicy)
 {
   // Policy-1: Choose the one with highest LAST score.
   if (!patterns.empty())
@@ -70,7 +70,7 @@ Allocation choosePattern(PatternVec patterns, JobItem job)
                                [busynode](auto &pattern) { return std::find(pattern.begin(), pattern.end(), busynode) != pattern.end(); }),
                      patterns.end());
     }
-    return policyMap[POLICYNAME](patterns, job);
+    return policyMap[mgapPolicy](patterns, job);
   }
   else
   {
@@ -78,7 +78,7 @@ Allocation choosePattern(PatternVec patterns, JobItem job)
   }
 }
 
-uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
+uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 {
   bwmap = gpuSys.bwmap;
   currTopo = gpuSys.topology;
@@ -86,7 +86,7 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
 
   readJobFile(jobsFilename);
 
-  std::cout << "Using Policy: " << POLICYNAME << std::endl;
+  std::cout << "Using Policy: " << mgapPolicy << std::endl;
 
   uint32_t cycles = 0;
 
@@ -144,7 +144,7 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
       logging("Finding Allocation for Job " + std::to_string(job.getId()), 2);
       findPatterns(currTopo, job.pattern);
       // utils::print_patterns();
-      auto alloc = choosePattern(utils::foundPatterns, job);
+      auto alloc = choosePattern(utils::foundPatterns, job, mgapPolicy);
       utils::clear_patterns();
       if (!alloc.pattern.empty())
       {
