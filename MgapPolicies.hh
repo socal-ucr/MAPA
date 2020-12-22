@@ -31,6 +31,10 @@ Allocation largestLastScore(PatternVec patterns, JobItem job)
       alloc.lastScore = currlastScore;
     }
   }
+  if (alloc.pattern.size())
+  {
+    alloc.edges = getEdges(alloc.pattern, job.topology);
+  }
   logging("Printing selected pattern\n", 1);
   logging(alloc.pattern, 1);
   return alloc;
@@ -68,6 +72,10 @@ Allocation bwSensitiveLastScore(PatternVec patterns, JobItem job)
         alloc.lastScore = currlastScore;
       }
     }
+  }
+  if (alloc.pattern.size())
+  {
+    alloc.edges = getEdges(alloc.pattern, job.topology);
   }
   logging("Printing selected pattern\n", 1);
   logging(alloc.pattern, 1);

@@ -158,6 +158,7 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
         for (auto& node : alloc.pattern)
         {
           job.schedGPUs.push_back(node);
+          job.alloc = alloc;
           busyNodes.push_back(node);
         }
         moveItem(jobScheduled, jobQueue, job);
@@ -166,7 +167,7 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys)
     }
     cycles++;
   }
-  logging(jobFinished, 2);
+  logresults(jobFinished, 2);
   return cycles;
 }
 

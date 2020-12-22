@@ -120,20 +120,33 @@ void logging(std::list<std::pair<T,T>> vec, int level)
   }
 }
 
-void logging(JobVec vec, int level)
+void logresults(JobVec vec, int level)
 {
-  std::cout << "ID startTime endTime Allocated schedGpus" << std::endl;
+  // std::cout << "ID startTime endTime Allocated schedGpus" << std::endl;
   if (level > LOGLEVEL)
   {
-    for (auto& elem: vec)
+    std::ofstream outFile;
+    outFile.open("results.txt");
+    outFile << "ID startTime endTime lastScore schedGpus\n";
+    for (auto &elem : vec)
     {
-      std::cout << elem.id << " " << elem.startTime << " " << elem.endTime << " ";
-      for (auto& node: elem.schedGPUs)
+      // std::cout << elem.id << " " << elem.startTime << " " << elem.endTime << " ";
+      // for (auto& node: elem.schedGPUs)
+      // {
+      //   std::cout << node << ",";
+      // }
+      // std::cout << std::endl;
+
+      std::string str;
+      str = std::to_string(elem.id) + " " + std::to_string(elem.startTime) + " " + std::to_string(elem.endTime) + " " + std::to_string(elem.alloc.lastScore) + " ";
+      for (auto &node : elem.schedGPUs)
       {
-        std::cout << node << ",";
+        str += std::to_string(node) + ",";
       }
-      std::cout << std::endl;
+      str += "\n";
+      outFile << str;
     }
+    outFile.close();
   }
 }
 
