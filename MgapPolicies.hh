@@ -117,13 +117,20 @@ Allocation baselineV2(PatternVec patterns, JobItem job)
           }
           else
           {
-            Allocation alloc;
-            alloc.pattern = pattern;
-            alloc.lastScore = getLastScore(pattern, job.topology);
-            alloc.edges = getEdges(alloc.pattern, job.topology);
-            logging("Printing selected pattern\n", 1);
-            logging(alloc.pattern, 1);
-            return alloc;
+            if (node != pattern.back())
+            {
+              continue;
+            }
+            else
+            {
+              Allocation alloc;
+              alloc.pattern = pattern;
+              alloc.lastScore = getLastScore(pattern, job.topology);
+              alloc.edges = getEdges(alloc.pattern, job.topology);
+              logging("Printing selected pattern\n", 1);
+              logging(alloc.pattern, 1);
+              return alloc;
+            }
           }
         }
       }
