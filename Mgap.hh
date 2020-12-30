@@ -86,7 +86,9 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 
   readJobFile(jobsFilename);
 
-  std::cout << "Using Policy: " << mgapPolicy << std::endl;
+  std::cout << "Starting simulation" << std::endl << std::endl;
+  std::cout << "Jobfile: " << jobsFilename << std::endl;
+  std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
 
   uint32_t cycles = 0;
 
@@ -177,9 +179,12 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   }
   avgLS /= jobFinished.size();
   avgFS /= jobFinished.size();
+
+  std::string logFilename = jobsFilename + mgapPolicy + "Log.csv";
   std::cout << "Average Last Score " << avgLS << std::endl;
   std::cout << "Average Frag Score " << avgFS << std::endl;
-  logresults(jobFinished, 2);
+  std::cout << "Logging results to " << logFilename << std::endl;
+  logresults(jobFinished, 2, logFilename);
   return cycles;
 }
 

@@ -121,13 +121,13 @@ void logging(std::list<std::pair<T,T>> vec, int level)
   }
 }
 
-void logresults(JobVec vec, int level)
+void logresults(JobVec vec, int level, std::string logFilename)
 {
   // std::cout << "ID startTime endTime Allocated schedGpus" << std::endl;
   if (level > LOGLEVEL)
   {
     std::ofstream outFile;
-    outFile.open("results.txt");
+    outFile.open(logFilename);
     outFile << "ID startTime endTime lastScore fragScore schedGpus\n";
     for (auto &elem : vec)
     {
