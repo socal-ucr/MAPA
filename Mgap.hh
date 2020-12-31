@@ -128,6 +128,10 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
         erase(jobList, *it);
         it = jobList.begin();
       }
+      else if (it->arvlTime > cycles)
+      {
+        break;
+      }
       else
       {
         ++it;
