@@ -2,3 +2,7 @@
 jobs.txt
 bin/
 mgap
+*.csv
+*.pdf
+jobs*
+results-*

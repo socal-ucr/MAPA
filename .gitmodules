@@ -4,6 +4,3 @@
 [submodule "peregrine"]
 	path = peregrine
 	url = git@github.com:socal-ucr/peregrine.git
-[submodule "plot-scripts"]
-	path = plot-scripts
-	url = git@github.com:Kiran-r/plot-scripts.git
