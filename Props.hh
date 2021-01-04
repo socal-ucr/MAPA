@@ -128,18 +128,18 @@ void logresults(JobVec vec, int level, std::string logFilename)
   {
     std::ofstream outFile;
     outFile.open(logFilename);
-    outFile << "ID startTime endTime lastScore fragScore schedGpus\n";
+    outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
     for (auto &elem : vec)
     {
-      // std::cout << elem.id << " " << elem.startTime << " " << elem.endTime << " ";
-      // for (auto& node: elem.schedGPUs)
-      // {
-      //   std::cout << node << ",";
-      // }
-      // std::cout << std::endl;
-
       std::string str;
-      str = std::to_string(elem.id) + " " + std::to_string(elem.startTime) + " " + std::to_string(elem.endTime) + " " + std::to_string(elem.alloc.lastScore) + " " + std::to_string(elem.alloc.fragScore) + " ";
+      str = std::to_string(elem.id);
+      str += " " + std::to_string(elem.startTime);
+      str += " " + std::to_string(elem.endTime);
+      str += " " + std::to_string(elem.alloc.lastScore);
+      str += " " + std::to_string(elem.alloc.fragScore);
+      str += " " + std::to_string(elem.bwSensitive?1:0);
+      str += " " + std::to_string(elem.numGpus);
+      str += " ";
       for (auto &node : elem.schedGPUs)
       {
         str += std::to_string(node) + ",";
