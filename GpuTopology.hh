@@ -137,6 +137,22 @@ BwMap getBwMat(std::string sysName)
   return populateSymmetry(bwmap);
 }
 
+uint32_t getIdealLastScore(BwMap bwmap)
+{
+  uint32_t idealLastScore = 0;
+  for (auto &outer : bwmap)
+  {
+    for (auto &inner : outer.second)
+    {
+      if (idealLastScore < inner.second)
+      {
+        idealLastScore = inner.second;
+      }
+    }
+  }
+  return idealLastScore;
+}
+
 struct GpuSystem
 {
   SmallGraph topology;
@@ -149,17 +165,15 @@ struct GpuSystem
     topology = topo;
     bwmap = bmap;
     numGpus = num;
-    idealLastScore = 0;
-    for (auto &outer : bwmap)
-    {
-      for (auto &inner : outer.second)
-      {
-        if (idealLastScore < inner.second)
-        {
-          idealLastScore = inner.second;
-        }
-      }
-    }
+    idealLastScore = getIdealLastScore(bwmap);
+  }
+
+  GpuSystem(std::string arch)
+  {
+    topology = cubemesh();
+    bwmap = getBwMat(arch);
+    numGpus = getNumGpusPerNode(arch);
+    idealLastScore = getIdealLastScore(bwmap);
   }
 };
 

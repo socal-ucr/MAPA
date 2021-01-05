@@ -12,7 +12,7 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
-Allocation LASTgreedy(PatternVec patterns, JobItem job)
+Allocation LASTgreedy(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
 
@@ -38,7 +38,7 @@ Allocation LASTgreedy(PatternVec patterns, JobItem job)
   return alloc;
 }
 
-Allocation LASTbw(PatternVec patterns, JobItem job)
+Allocation LASTbw(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
 
@@ -80,7 +80,7 @@ Allocation LASTbw(PatternVec patterns, JobItem job)
   return alloc;
 }
 
-Allocation baselineV1(PatternVec patterns, JobItem job)
+Allocation baselineV1(PatternVec& patterns, JobItem job)
 {
   // Pass any available alloc based on smallest/available ID.
   Allocation alloc;
@@ -99,7 +99,7 @@ Allocation baselineV1(PatternVec patterns, JobItem job)
   return alloc;
 }
 
-Allocation baselineV2(PatternVec patterns, JobItem job)
+Allocation baselineV2(PatternVec& patterns, JobItem job)
 {
   // Pass an alloc in the same PCIe root complex, if none fallback to baselineV1.
   if (patterns.size())
@@ -140,11 +140,11 @@ Allocation baselineV2(PatternVec patterns, JobItem job)
   return Allocation {};
 }
 
-std::map<std::string, std::function<Allocation(PatternVec, JobItem)>> policyMap =
-    {{"LASTgreedy", [](PatternVec patterns, JobItem job) { return LASTgreedy(patterns, job); }},
-     {"LASTbw", [](PatternVec patterns, JobItem job) { return LASTbw(patterns, job); }},
-     {"baselineV1", [](PatternVec patterns, JobItem job) { return baselineV1(patterns, job); }},
-     {"baselineV2", [](PatternVec patterns, JobItem job) { return baselineV2(patterns, job); }}
+std::map<std::string, std::function<Allocation(PatternVec&, JobItem)>> policyMap =
+    {{"LASTgreedy", [](PatternVec& patterns, JobItem job) { return LASTgreedy(patterns, job); }},
+     {"LASTbw", [](PatternVec& patterns, JobItem job) { return LASTbw(patterns, job); }},
+     {"baselineV1", [](PatternVec& patterns, JobItem job) { return baselineV1(patterns, job); }},
+     {"baselineV2", [](PatternVec& patterns, JobItem job) { return baselineV2(patterns, job); }}
     };
 
 #endif
