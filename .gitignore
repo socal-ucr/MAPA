@@ -1,7 +1,7 @@
 .vscode
 jobs.txt
 bin/
-mgap
+mgapSim
 *.csv
 *.pdf
 jobs*

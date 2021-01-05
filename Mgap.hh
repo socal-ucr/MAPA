@@ -103,7 +103,6 @@ uint32_t simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
         if (isFinished(*jobIt, cycles))
         {
           logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(cycles), 1);
-          // addNodes(jobIt->schedGPUs);
           jobIt->endTime = cycles;
           for (auto &node : jobIt->schedGPUs)
           {
