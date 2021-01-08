@@ -33,6 +33,7 @@ struct JobItem
   uint32_t numGpus;
   uint32_t id;
   std::string topology;
+  std::string taskToRun;
   std::vector<SmallGraph> pattern;
   std::vector<uint32_t> schedGPUs; //sched nodes maybe?.
   uint32_t arvlTime; // Time to move from list to queue.
@@ -57,6 +58,7 @@ struct JobItem
     arvlTime = boost::lexical_cast<uint32_t>(*(++argsIt));
     srvcTime = boost::lexical_cast<uint32_t>(*(++argsIt));
     bwSensitive = boost::lexical_cast<bool>(*(++argsIt));
+    taskToRun = *(++argsIt); // NOTE(Kiran): This is to be only used in MgapRealRun
     id = jid; // Size of the jobList at the time of creating this object.
 
     // Note: Unsure if this can check anti-edges.

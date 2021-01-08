@@ -1,37 +1,40 @@
 #!/usr/bin/python3
+#%%
 
 import seaborn as sns
 import pandas as pd
 
+path = '/home/stark/workspace/ics-results/results-dump-123120/'
+
 dataframes = []
-df = pd.read_csv(
-    '/home/stark/workspace/mgap-scheduler/scripts/jobs-0baselineV1Log.csv', header=0, delim_whitespace=True)
+df = pd.read_csv(path + 'jobs-0baselineV1Log.csv',
+                 header=0, delim_whitespace=True)
 df['scheduler'] = 'baselineV1'
 df['bwSensitivity'] = 0
 dataframes.append(df)
 
-df = pd.read_csv('/home/stark/workspace/mgap-scheduler/scripts/jobs-0baselineV1Log.csv',
+df = pd.read_csv(path + 'jobs-0baselineV1Log.csv',
                  header=0, delim_whitespace=True)
 df['scheduler'] = 'baselineV2'
 df['bwSensitivity'] = 0
 dataframes.append(df)
 
-df = pd.read_csv('/home/stark/workspace/mgap-scheduler/scripts/greedy-split0.csv',
+df = pd.read_csv(path + 'greedy-split0.csv',
                  header=0, delim_whitespace=True)
 df['scheduler'] = 'greedy'
 df['bwSensitivity'] = 0
 dataframes.append(df)
-df = pd.read_csv('/home/stark/workspace/mgap-scheduler/scripts/greedy-split1.csv',
+df = pd.read_csv(path + 'greedy-split1.csv',
                  header=0, delim_whitespace=True)
 df['scheduler'] = 'greedy'
 df['bwSensitivity'] = 1
 dataframes.append(df)
-df = pd.read_csv('/home/stark/workspace/mgap-scheduler/scripts/bw-split0.csv',
+df = pd.read_csv(path + 'bw-split0.csv',
                  header=0, delim_whitespace=True)
 df['scheduler'] = 'bw'
 df['bwSensitivity'] = 0
 dataframes.append(df)
-df = pd.read_csv('/home/stark/workspace/mgap-scheduler/scripts/bw-split1.csv',
+df = pd.read_csv(path + 'bw-split1.csv',
                  header=0, delim_whitespace=True)
 df['scheduler'] = 'bw'
 df['bwSensitivity'] = 1
@@ -62,12 +65,12 @@ sns.set_theme(style="whitegrid")
 
 ax = sns.boxplot(x="scheduler", y="fragScore",
                  hue="bwSensitivity", data=all, palette="Set2")
+fig = ax.get_figure()
+fig.savefig("seaborn-bp.pdf")
 # ax = sns.swarmplot(x="scheduler", y="fragScore",
 #                    hue="bwSensitivity",  data=all, dodge=True, color=".25", palette="Set3")
 bx = sns.boxplot(x="scheduler", y="lastScore",
                  hue="bwSensitivity", data=all, palette="Set2")
-fig = ax.get_figure()
-fig.savefig("seaborn-bp.pdf")
 
 fig2 = bx.get_figure()
 fig2.savefig("seaborn-last.pdf")

@@ -2,6 +2,7 @@
 jobs.txt
 bin/
 mgapSim
+mgapReal
 *.csv
 *.pdf
 jobs*
