@@ -87,7 +87,7 @@ BwMap populateSymmetry(BwMap bwmap)
 BwMap getBwMat(std::string sysName)
 {
   BwMap bwmap;
-  
+  // Add remaining links for preservation score.
   if (sysName == "dgx-v")
   {
     bwmap[1][2] = 25;

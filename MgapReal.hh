@@ -5,21 +5,158 @@
 #include <fstream>
 #include <vector>
 #include <list>
+#include <unistd.h>
+#include <chrono>
+#include <ctime>
+#include <sys/wait.h>
 
 #include "Mgap.hh"
+
+struct RunningJob
+{
+  JobItem job;
+  int pid;
+  int status;
+
+  bool operator==(const RunningJob &a) const
+  {
+    return job.getId() == a.job.getId();
+  }
+};
 
 Nodes busyNodes;
 JobVec jobList;
 JobVec jobQueue;     // Ready to be scheduled.
-JobVec jobScheduled; // Scheduled/Running jobs.
+std::vector<RunningJob> jobScheduled; // Scheduled/Running jobs.
 JobVec jobFinished;  // Finished jobs.
+int numGpus;
 
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
 
-void forkProcess()
+void forkProcess(RunningJob& rjob)
 {
+  // int pid, status;
+  // first we fork the process
+  rjob.pid = fork();
+  if (rjob.pid)
+  {
+    return;
+  }
+  else
+  {
+    /* pid == 0: this is the child process. now let's load the
+       program into this process and run it */
+    char* cmd = const_cast<char*>(rjob.job.taskToRun.c_str());
+    std::string nodes;
+    for (auto node : rjob.job.schedGPUs)
+    {
+      nodes += std::to_string(node) + ",";
+    }
+    char *argv[3] = {cmd, const_cast<char *>(nodes.c_str()), NULL};
+    // const char dir[] = "$HOME/workspace/caffe-scripts";
+
+    // load it. there are more exec__ functions, try 'man 3 exec'
+    // execl takes the arguments as parameters. execv takes them as an array
+    // this is execl though, so:
+    //      exec         argv[0]  argv[1] end
+    execvp(cmd, argv);
+  }
+}
+
+// __pid_t isFinished(RunningJob* rjob)
+// {
+//   return waitpid(rjob->pid, &(rjob->status), WNOHANG);
+// }
+
+long int getTimeNow()
+{
+  auto now = std::chrono::system_clock::now();
+  auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+  auto epoch = now_ms.time_since_epoch();
+  auto value = std::chrono::duration_cast<std::chrono::milliseconds>(epoch);
+  return value.count();
+}
+
+void checkCompletedJobs()
+{
+  auto rjobIt = jobScheduled.begin();
+  while (rjobIt != jobScheduled.end())
+  {
+    if (waitpid(rjobIt->pid, &(rjobIt->status), WNOHANG))
+    {
+      (rjobIt->job).endTime = getTimeNow();
+      logging("Finished Job " + std::to_string((rjobIt->job).getId()) + " at " + std::to_string((rjobIt->job).endTime - (rjobIt->job).startTime), 1);
+      for (auto &node : (rjobIt->job).schedGPUs)
+      {
+        busyNodes.erase(std::remove_if(busyNodes.begin(), busyNodes.end(),
+                                       [node](auto &elem) { return node == elem; }),
+                        busyNodes.end());
+      }
+      jobFinished.emplace_back(rjobIt->job);
+      erase(jobScheduled, *rjobIt);
+      rjobIt = jobScheduled.begin();
+    }
+    else
+    {
+      rjobIt++;
+    }
+  }
+
+  return;
+}
+
+void populateJobQueue()
+{
+  // TODO: We are not considering arvlTime in this implementation.
+  for (auto job : jobList)
+  {
+    job.arvlTime = getTimeNow();
+    jobQueue.emplace_back(job);
+  }
+  jobList.clear();
+
+  return;
+}
+
+void scheduleReadyJobs(std::string mgapPolicy)
+{
+  for (auto &job : jobQueue)
+  {
+    logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()), 1);
+    logging("Required GPUs " + std::to_string(job.numGpus), 1);
+    if (job.numGpus > (numGpus - busyNodes.size()))
+    {
+      logging("Insufficient GPUs", 1);
+      break;
+    }
+    logging("Finding Allocation for Job " + std::to_string(job.getId()), 2);
+    findPatterns(currTopo, job.pattern);
+    // utils::print_patterns();
+    filterPatterns(utils::foundPatterns, busyNodes);
+    auto alloc = choosePattern(utils::foundPatterns, job, mgapPolicy);
+    utils::clear_patterns();
+    if (!alloc.pattern.empty())
+    {
+      job.startTime = getTimeNow();
+      logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime), 1);
+      logging("Allocation found", 1);
+      logging(alloc.pattern, 1);
+      job.alloc = alloc;
+      for (auto &node : alloc.pattern)
+      {
+        job.schedGPUs.push_back(node);
+        busyNodes.push_back(node);
+      }
+      RunningJob rjob{job, 0, 0};
+      forkProcess(rjob); // FORK JOB
+      jobScheduled.emplace_back(rjob);
+      erase(jobQueue, job);
+      break;
+    }
+  }
+
   return;
 }
 
@@ -28,6 +165,7 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   bwmap = gpuSys.bwmap;
   currTopo = gpuSys.topology;
   hwTopo = gpuSys.topology;
+  numGpus = gpuSys.numGpus;
 
   readJobFile(jobsFilename);
 
@@ -35,89 +173,28 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   std::cout << "Jobfile: " << jobsFilename << std::endl;
   std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
 
-  uint32_t cycles = 0;
+  auto startTime = getTimeNow();
 
   while (!jobList.empty() || !jobQueue.empty() || !jobScheduled.empty())
   {
-    logging("Cycle = " + std::to_string(cycles), 1);
     if (!jobScheduled.empty())
     {
-      auto jobIt = jobScheduled.begin();
-      while (jobIt != jobScheduled.end())
-      {
-        if (isFinished(*jobIt, cycles))
-        {
-          logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(cycles), 1);
-          jobIt->endTime = cycles;
-          for (auto &node : jobIt->schedGPUs)
-          {
-            busyNodes.erase(std::remove_if(busyNodes.begin(), busyNodes.end(),
-                                           [node](auto &elem) { return node == elem; }),
-                            busyNodes.end());
-          }
-          moveItem(jobFinished, jobScheduled, *jobIt);
-          jobIt = jobScheduled.begin();
-        }
-        else 
-        {
-          jobIt++;
-        }
-      }
+      checkCompletedJobs();
     }
-    for (auto it = jobList.begin(); it != jobList.end();)
+
+    if (jobList.size())
     {
-      if (it->arvlTime <= cycles)
-      {
-        jobQueue.emplace_back(*it);
-        erase(jobList, *it);
-        it = jobList.begin();
-      }
-      else if (it->arvlTime > cycles)
-      {
-        break;
-      }
-      else
-      {
-        ++it;
-      }
+      populateJobQueue();
     }
-    
-    for (auto& job : jobQueue)
+
+    if (jobQueue.size())
     {
-      logging("Available GPUs " + std::to_string(gpuSys.numGpus - busyNodes.size()), 1);
-      logging("Required GPUs " + std::to_string(job.numGpus), 1);
-      if (job.numGpus > (gpuSys.numGpus - busyNodes.size()))
-      {
-        logging("Insufficient GPUs", 1);
-        break;
-      }
-      logging("Finding Allocation for Job " + std::to_string(job.getId()), 2);
-      findPatterns(currTopo, job.pattern);
-      // utils::print_patterns();
-      filterPatterns(utils::foundPatterns, busyNodes);
-      auto alloc = choosePattern(utils::foundPatterns, job, mgapPolicy);
-      utils::clear_patterns();
-      if (!alloc.pattern.empty())
-      {
-        // Check getID() it is returning garbage.
-        logging("Scheduled Job " + std::to_string(job.getId()) + "at "+ std::to_string(cycles), 1);
-        // removeNodes(alloc.pattern);
-        job.startTime = cycles;
-        logging("Allocation found", 1);
-        logging(alloc.pattern, 1);
-        // add busy nodes. TODO: IMPLEMENT WITH BUSY NODES.
-        for (auto& node : alloc.pattern)
-        {
-          job.schedGPUs.push_back(node);
-          job.alloc = alloc;
-          busyNodes.push_back(node);
-        }
-        moveItem(jobScheduled, jobQueue, job);
-        break;
-      }
+      scheduleReadyJobs(mgapPolicy);
     }
-    cycles++;
   }
+
+  auto endTime = getTimeNow();
+
   uint32_t avgLS = 0;
   double avgFS = 0;
   for (auto& job : jobFinished)
@@ -134,7 +211,8 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;
   logresults(jobFinished, 2, logFilename);
-  return cycles;
+
+  return (endTime - startTime); // Return final execTime.
 }
 
 #endif

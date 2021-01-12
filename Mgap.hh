@@ -13,14 +13,6 @@
 #include "TopoUtils.hh"
 #include "MgapPolicies.hh"
 
-bool isFinished(JobItem job, uint32_t cycles)
-{
-  uint32_t currTime;
-  currTime = job.startTime + job.srvcTime;
-  job.endTime = cycles;
-  return (cycles == currTime);
-}
-
 template <typename Vec, typename T>
 void erase(Vec& vec, T item)
 {

@@ -36,13 +36,14 @@ struct JobItem
   std::string taskToRun;
   std::vector<SmallGraph> pattern;
   std::vector<uint32_t> schedGPUs; //sched nodes maybe?.
-  uint32_t arvlTime; // Time to move from list to queue.
-  uint32_t srvcTime;
+  long int arvlTime;  // Time to move from list to queue.
+  long int srvcTime;  // Time to finish a running job (Used in simulation).
   bool bwSensitive;
   Allocation alloc;
-  uint32_t startTime; // Time from Queue to Job Scheduled.
-  uint32_t endTime;   // Time from Scheduled to Finished.
-  uint32_t runtime;   // EndTime - arvlTime.
+  long int startTime; // Time from Queue to Job Scheduled.
+  long int endTime;   // Time from Scheduled to Finished.
+  long int execTime;  // EndTime - startTime.
+  long int queueTime; // startTime - arvlTime.
 
   JobItem()
   {
@@ -55,8 +56,8 @@ struct JobItem
     numGpus = boost::lexical_cast<int>(*argsIt);
     // pattern = reinterpret_cast<std::string>(args[1]);
     topology = *(++argsIt);
-    arvlTime = boost::lexical_cast<uint32_t>(*(++argsIt));
-    srvcTime = boost::lexical_cast<uint32_t>(*(++argsIt));
+    arvlTime = boost::lexical_cast<long int>(*(++argsIt));
+    srvcTime = boost::lexical_cast<long int>(*(++argsIt));
     bwSensitive = boost::lexical_cast<bool>(*(++argsIt));
     taskToRun = *(++argsIt); // NOTE(Kiran): This is to be only used in MgapRealRun
     id = jid; // Size of the jobList at the time of creating this object.
@@ -137,6 +138,8 @@ void logresults(JobVec vec, int level, std::string logFilename)
       str = std::to_string(elem.id);
       str += " " + std::to_string(elem.startTime);
       str += " " + std::to_string(elem.endTime);
+      str += " " + std::to_string(elem.queueTime);
+      str += " " + std::to_string(elem.execTime);
       str += " " + std::to_string(elem.alloc.lastScore);
       str += " " + std::to_string(elem.alloc.fragScore);
       str += " " + std::to_string(elem.bwSensitive?1:0);
