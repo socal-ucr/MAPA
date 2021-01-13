@@ -16,7 +16,7 @@ struct RunningJob
 {
   JobItem job;
   int pid;
-  int status;
+  int status; // Is this necessary?
 
   bool operator==(const RunningJob &a) const
   {
@@ -35,24 +35,32 @@ extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
 
-void forkProcess(RunningJob& rjob)
+int forkProcess(JobItem& job)
 {
   // int pid, status;
   // first we fork the process
-  rjob.pid = fork();
-  if (rjob.pid)
+  auto pid = fork();
+  if (pid > 0)
   {
-    return;
+    return pid;
   }
   else
   {
     /* pid == 0: this is the child process. now let's load the
        program into this process and run it */
-    char* cmd = const_cast<char*>(rjob.job.taskToRun.c_str());
+    char* cmd = const_cast<char*>(job.taskToRun.c_str());
     std::string nodes;
-    for (auto node : rjob.job.schedGPUs)
+    for (auto nodeIt = job.schedGPUs.begin(); nodeIt != job.schedGPUs.end();)
     {
-      nodes += std::to_string(node) + ",";
+      nodes += std::to_string(*nodeIt);
+      if (++nodeIt == job.schedGPUs.end())
+      {
+        break;
+      }
+      else
+      {
+        nodes += ",";
+      }
     }
     char *argv[3] = {cmd, const_cast<char *>(nodes.c_str()), NULL};
     // const char dir[] = "$HOME/workspace/caffe-scripts";
@@ -79,12 +87,18 @@ long int getTimeNow()
   return value.count();
 }
 
+int waitOn(int pid)
+{
+  int status;
+  return waitpid(pid, &(status), WNOHANG);
+}
+
 void checkCompletedJobs()
 {
   auto rjobIt = jobScheduled.begin();
   while (rjobIt != jobScheduled.end())
   {
-    if (waitpid(rjobIt->pid, &(rjobIt->status), WNOHANG))
+    if (waitOn(rjobIt->pid) > 0)
     {
       (rjobIt->job).endTime = getTimeNow();
       logging("Finished Job " + std::to_string((rjobIt->job).getId()) + " at " + std::to_string((rjobIt->job).endTime - (rjobIt->job).startTime), 1);
@@ -149,8 +163,8 @@ void scheduleReadyJobs(std::string mgapPolicy)
         job.schedGPUs.push_back(node);
         busyNodes.push_back(node);
       }
-      RunningJob rjob{job, 0, 0};
-      forkProcess(rjob); // FORK JOB
+      RunningJob rjob;
+      rjob.pid = forkProcess(job); // FORK JOB
       jobScheduled.emplace_back(rjob);
       erase(jobQueue, job);
       break;
