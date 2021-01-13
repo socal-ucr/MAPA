@@ -26,8 +26,8 @@ struct RunningJob
 
 Nodes busyNodes;
 JobVec jobList;
-JobVec jobQueue;     // Ready to be scheduled.
-std::vector<RunningJob> jobScheduled; // Scheduled/Running jobs.
+JobVec waitingJobs;     // Ready to be scheduled.
+std::vector<RunningJob> runningJobs; // Scheduled/Running jobs.
 JobVec jobFinished;  // Finished jobs.
 int numGpus;
 
@@ -95,8 +95,8 @@ int waitOn(int pid)
 
 void checkCompletedJobs()
 {
-  auto rjobIt = jobScheduled.begin();
-  while (rjobIt != jobScheduled.end())
+  auto rjobIt = runningJobs.begin();
+  while (rjobIt != runningJobs.end())
   {
     if (waitOn(rjobIt->pid) > 0)
     {
@@ -109,8 +109,8 @@ void checkCompletedJobs()
                         busyNodes.end());
       }
       jobFinished.emplace_back(rjobIt->job);
-      erase(jobScheduled, *rjobIt);
-      rjobIt = jobScheduled.begin();
+      erase(runningJobs, *rjobIt);
+      rjobIt = runningJobs.begin();
     }
     else
     {
@@ -121,13 +121,13 @@ void checkCompletedJobs()
   return;
 }
 
-void populateJobQueue()
+void populatewaitingJobs()
 {
   // TODO: We are not considering arvlTime in this implementation.
   for (auto job : jobList)
   {
     job.arvlTime = getTimeNow();
-    jobQueue.emplace_back(job);
+    waitingJobs.emplace_back(job);
   }
   jobList.clear();
 
@@ -136,7 +136,7 @@ void populateJobQueue()
 
 void scheduleReadyJobs(std::string mgapPolicy)
 {
-  for (auto &job : jobQueue)
+  for (auto &job : waitingJobs)
   {
     logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()), 1);
     logging("Required GPUs " + std::to_string(job.numGpus), 1);
@@ -165,8 +165,8 @@ void scheduleReadyJobs(std::string mgapPolicy)
       }
       RunningJob rjob;
       rjob.pid = forkProcess(job); // FORK JOB
-      jobScheduled.emplace_back(rjob);
-      erase(jobQueue, job);
+      runningJobs.emplace_back(rjob);
+      erase(waitingJobs, job);
       break;
     }
   }
@@ -189,19 +189,19 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
 
   auto startTime = getTimeNow();
 
-  while (!jobList.empty() || !jobQueue.empty() || !jobScheduled.empty())
+  while (!jobList.empty() || !waitingJobs.empty() || !runningJobs.empty())
   {
-    if (!jobScheduled.empty())
+    if (!runningJobs.empty())
     {
       checkCompletedJobs();
     }
 
     if (jobList.size())
     {
-      populateJobQueue();
+      populatewaitingJobs();
     }
 
-    if (jobQueue.size())
+    if (waitingJobs.size())
     {
       scheduleReadyJobs(mgapPolicy);
     }

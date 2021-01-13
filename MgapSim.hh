@@ -10,8 +10,8 @@
 
 Nodes busyNodes;
 JobVec jobList;
-JobVec jobQueue;     // Ready to be scheduled.
-JobVec jobScheduled; // Scheduled/Running jobs.
+JobVec waitingJobs;     // Ready to be scheduled.
+JobVec runningJobs; // Scheduled/Running jobs.
 JobVec jobFinished;  // Finished jobs.
 
 long int cycles = 0;
@@ -31,8 +31,8 @@ bool isFinished(JobItem job, uint32_t cycles)
 
 void checkCompletedJobs()
 {
-  auto jobIt = jobScheduled.begin();
-  while (jobIt != jobScheduled.end())
+  auto jobIt = runningJobs.begin();
+  while (jobIt != runningJobs.end())
   {
     if (isFinished(*jobIt, cycles))
     {
@@ -45,8 +45,8 @@ void checkCompletedJobs()
                                        [node](auto &elem) { return node == elem; }),
                         busyNodes.end());
       }
-      moveItem(jobFinished, jobScheduled, *jobIt);
-      jobIt = jobScheduled.begin();
+      moveItem(jobFinished, runningJobs, *jobIt);
+      jobIt = runningJobs.begin();
     }
     else
     {
@@ -57,13 +57,13 @@ void checkCompletedJobs()
   return;
 }
 
-void populateJobQueue()
+void populatewaitingJobs()
 {
   for (auto it = jobList.begin(); it != jobList.end();)
   {
     if (it->arvlTime <= cycles)
     {
-      jobQueue.emplace_back(*it);
+      waitingJobs.emplace_back(*it);
       erase(jobList, *it);
       it = jobList.begin();
     }
@@ -80,7 +80,7 @@ void populateJobQueue()
 
 void scheduleReadyJobs(std::string mgapPolicy)
 {
-  for (auto &job : jobQueue)
+  for (auto &job : waitingJobs)
   {
     logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()), 1);
     logging("Required GPUs " + std::to_string(job.numGpus), 1);
@@ -108,7 +108,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
         job.schedGPUs.push_back(node);
         busyNodes.push_back(node);
       }
-      moveItem(jobScheduled, jobQueue, job);
+      moveItem(runningJobs, waitingJobs, job);
       break;
     }
   }
@@ -129,20 +129,20 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   std::cout << "Jobfile: " << jobsFilename << std::endl;
   std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
 
-  while (!jobList.empty() || !jobQueue.empty() || !jobScheduled.empty())
+  while (!jobList.empty() || !waitingJobs.empty() || !runningJobs.empty())
   {
     logging("Cycle = " + std::to_string(cycles), 1);
-    if (!jobScheduled.empty())
+    if (!runningJobs.empty())
     {
       checkCompletedJobs();
     }
     
     if (jobList.size())
     {
-      populateJobQueue();
+      populatewaitingJobs();
     }
 
-    if (jobQueue.size())
+    if (waitingJobs.size())
     {
       scheduleReadyJobs(mgapPolicy);
     }
