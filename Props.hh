@@ -32,6 +32,7 @@ struct JobItem
 {
   uint32_t numGpus;
   uint32_t id;
+  int pid; // Used to store process ID in realRun.
   std::string topology;
   std::string taskToRun;
   std::vector<SmallGraph> pattern;
@@ -61,6 +62,7 @@ struct JobItem
     bwSensitive = boost::lexical_cast<bool>(*(++argsIt));
     taskToRun = *(++argsIt); // NOTE(Kiran): This is to be only used in MgapRealRun
     id = jid; // Size of the jobList at the time of creating this object.
+    pid = -1; // Default to errNo. Write appropriate PID when necessary.
 
     // Note: Unsure if this can check anti-edges.
     if (topology == "ring")

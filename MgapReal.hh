@@ -12,22 +12,22 @@
 
 #include "Mgap.hh"
 
-struct RunningJob
-{
-  JobItem job;
-  int pid;
-  int status; // Is this necessary?
+// struct RunningJob
+// {
+//   JobItem job;
+//   int pid;
+//   int status; // Is this necessary?
 
-  bool operator==(const RunningJob &a) const
-  {
-    return job.getId() == a.job.getId();
-  }
-};
+//   bool operator==(const RunningJob &a) const
+//   {
+//     return job.getId() == a.job.getId();
+//   }
+// };
 
 Nodes busyNodes;
 JobVec jobList;
-JobVec waitingJobs;     // Ready to be scheduled.
-std::vector<RunningJob> runningJobs; // Scheduled/Running jobs.
+JobVec waitingJobs;  // Ready to be scheduled.
+JobVec runningJobs;  // Scheduled/Running jobs.
 JobVec jobFinished;  // Finished jobs.
 int numGpus;
 
@@ -40,8 +40,10 @@ int forkProcess(JobItem& job)
   // int pid, status;
   // first we fork the process
   auto pid = fork();
+  // Pid > 0 meaning child Pid was successfully created.
   if (pid > 0)
   {
+    std::cout << "PID after fork: " << pid << std::endl;
     return pid;
   }
   else
@@ -95,26 +97,27 @@ int waitOn(int pid)
 
 void checkCompletedJobs()
 {
-  auto rjobIt = runningJobs.begin();
-  while (rjobIt != runningJobs.end())
+  auto jobIt = runningJobs.begin();
+  while (jobIt != runningJobs.end())
   {
-    if (waitOn(rjobIt->pid) > 0)
+    if (waitOn(jobIt->pid) > 0)
     {
-      (rjobIt->job).endTime = getTimeNow();
-      logging("Finished Job " + std::to_string((rjobIt->job).getId()) + " at " + std::to_string((rjobIt->job).endTime - (rjobIt->job).startTime), 1);
-      for (auto &node : (rjobIt->job).schedGPUs)
+      jobIt->endTime = getTimeNow();
+      std::cout << "Job PID " << jobIt->pid << std::endl;
+      std::cout << "Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime) << std::endl;
+      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime), 1);
+      for (auto &node : jobIt->schedGPUs)
       {
         busyNodes.erase(std::remove_if(busyNodes.begin(), busyNodes.end(),
                                        [node](auto &elem) { return node == elem; }),
                         busyNodes.end());
       }
-      jobFinished.emplace_back(rjobIt->job);
-      erase(runningJobs, *rjobIt);
-      rjobIt = runningJobs.begin();
+      moveItem(jobFinished, runningJobs, *jobIt);
+      jobIt = runningJobs.begin();
     }
     else
     {
-      rjobIt++;
+      jobIt++;
     }
   }
 
@@ -163,10 +166,11 @@ void scheduleReadyJobs(std::string mgapPolicy)
         job.schedGPUs.push_back(node);
         busyNodes.push_back(node);
       }
-      RunningJob rjob;
-      rjob.pid = forkProcess(job); // FORK JOB
-      runningJobs.emplace_back(rjob);
-      erase(waitingJobs, job);
+      // RunningJob rjob;
+      job.pid = forkProcess(job); // FORK JOB
+      // runningJobs.emplace_back(rjob);
+      // erase(waitingJobs, job);
+      moveItem(runningJobs, waitingJobs, job);
       break;
     }
   }
