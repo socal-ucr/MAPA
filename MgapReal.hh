@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <errno.h>
 #include <list>
 #include <unistd.h>
 #include <chrono>
@@ -54,7 +55,7 @@ int forkProcess(JobItem& job)
     std::string nodes;
     for (auto nodeIt = job.schedGPUs.begin(); nodeIt != job.schedGPUs.end();)
     {
-      nodes += std::to_string(*nodeIt);
+      nodes += std::to_string((*nodeIt)-1); // TODO: Check if this has to be decremented before.
       if (++nodeIt == job.schedGPUs.end())
       {
         break;
@@ -72,6 +73,7 @@ int forkProcess(JobItem& job)
     // this is execl though, so:
     //      exec         argv[0]  argv[1] end
     execvp(cmd, argv);
+    std::cout << "Child process failed due to Error: " << strerror(errno) << std::endl;
   }
 }
 
