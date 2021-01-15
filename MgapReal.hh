@@ -226,7 +226,7 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   avgLS /= jobFinished.size();
   avgFS /= jobFinished.size();
 
-  std::string logFilename = jobsFilename + mgapPolicy + "Log.csv";
+  std::string logFilename = jobsFilename + mgapPolicy + "RealLog.csv";
   std::cout << "Average Last Score " << avgLS << std::endl;
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;
