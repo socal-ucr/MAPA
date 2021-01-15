@@ -15,3 +15,6 @@ mgapReal: MgapReal.cc $(OBJ) bliss
 
 bliss:
 	make -C peregrine/core/bliss-0.73
+
+clean:
+	rm mgapSim mgapReal
