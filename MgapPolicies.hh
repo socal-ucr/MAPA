@@ -15,6 +15,7 @@
 Allocation LASTgreedy(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
+  alloc.lastScore = 0;
 
   logging("Iterating through Patterns in policy", 2);
 
