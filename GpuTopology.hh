@@ -59,6 +59,7 @@ SmallGraph summitmesh()
   edge_list.emplace_back(4, 5);
   edge_list.emplace_back(4, 6);
   edge_list.emplace_back(5, 6);
+  return SmallGraph(edge_list);
 }
 
 BwMap populateSymmetry(BwMap bwmap)
