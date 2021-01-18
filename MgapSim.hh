@@ -12,7 +12,10 @@ Nodes busyNodes;
 JobVec jobList;
 JobVec waitingJobs;     // Ready to be scheduled.
 JobVec runningJobs; // Scheduled/Running jobs.
+// TODO(Kiran): Purge jobFinsihed Data structure
 JobVec jobFinished;  // Finished jobs.
+
+std::string logFilename;
 
 long int cycles = 0;
 int numGpus;
@@ -45,6 +48,7 @@ void checkCompletedJobs()
                                        [node](auto &elem) { return node == elem; }),
                         busyNodes.end());
       }
+      logresult(*jobIt, logFilename);
       moveItem(jobFinished, runningJobs, *jobIt);
       jobIt = runningJobs.begin();
     }
@@ -125,6 +129,10 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 
   readJobFile(jobsFilename);
 
+  logFilename = jobsFilename + mgapPolicy + "SimLog.csv";
+
+  createLogFile(logFilename);
+
   std::cout << "Starting simulation" << std::endl << std::endl;
   std::cout << "Jobfile: " << jobsFilename << std::endl;
   std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
@@ -163,11 +171,9 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   avgLS /= jobFinished.size();
   avgFS /= jobFinished.size();
 
-  std::string logFilename = jobsFilename + mgapPolicy + "SimLog.csv";
   std::cout << "Average Last Score " << avgLS << std::endl;
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;
-  logresults(jobFinished, 2, logFilename);
 
   return cycles;
 }

@@ -126,9 +126,43 @@ void logging(std::list<std::pair<T,T>> vec, int level)
   }
 }
 
+void createLogFile(std::string logFilename)
+{
+  std::ofstream outFile;
+  outFile.open(logFilename);
+  outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
+  outFile.close();
+}
+
+void logresult(JobItem job, std::string logFilename)
+{
+  std::ofstream outFile;
+
+  outFile.open(logFilename, std::ios_base::app); // append instead of overwrite
+
+  std::string str;
+  str = std::to_string(job.id);
+  str += " " + std::to_string(job.startTime);
+  str += " " + std::to_string(job.endTime);
+  str += " " + std::to_string(job.queueTime);
+  str += " " + std::to_string(job.execTime);
+  str += " " + std::to_string(job.alloc.lastScore);
+  str += " " + std::to_string(job.alloc.fragScore);
+  str += " " + std::to_string(job.bwSensitive ? 1 : 0);
+  str += " " + std::to_string(job.numGpus);
+  str += " ";
+  for (auto &node : job.schedGPUs)
+  {
+    str += std::to_string(node) + ",";
+  }
+  str += "\n";
+  outFile << str;
+  outFile.close();
+}
+
+//TODO(Kiran): logresult() makes this function obsolete. Purge it safely.
 void logresults(JobVec vec, int level, std::string logFilename)
 {
-  // std::cout << "ID startTime endTime Allocated schedGpus" << std::endl;
   if (level > LOGLEVEL)
   {
     std::ofstream outFile;
