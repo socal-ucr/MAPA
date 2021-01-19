@@ -6,5 +6,6 @@ mgapSim
 mgapReal
 *.csv
 *.pdf
+*.txt
 jobs*
 results-*
