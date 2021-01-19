@@ -32,6 +32,8 @@ JobVec runningJobs;  // Scheduled/Running jobs.
 JobVec jobFinished;  // Finished jobs.
 int numGpus;
 
+std::string logFilename;
+
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
@@ -107,13 +109,14 @@ void checkCompletedJobs()
       jobIt->endTime = getTimeNow();
       std::cout << "Job PID " << jobIt->pid << std::endl;
       std::cout << "Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime) << std::endl;
-      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime), 1);
+      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime));
       for (auto &node : jobIt->schedGPUs)
       {
         busyNodes.erase(std::remove_if(busyNodes.begin(), busyNodes.end(),
                                        [node](auto &elem) { return node == elem; }),
                         busyNodes.end());
       }
+      logresult(*jobIt, logFilename);
       moveItem(jobFinished, runningJobs, *jobIt);
       jobIt = runningJobs.begin();
     }
@@ -143,14 +146,14 @@ void scheduleReadyJobs(std::string mgapPolicy)
 {
   for (auto &job : waitingJobs)
   {
-    logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()), 1);
-    logging("Required GPUs " + std::to_string(job.numGpus), 1);
+    logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()));
+    logging("Required GPUs " + std::to_string(job.numGpus));
     if (job.numGpus > (numGpus - busyNodes.size()))
     {
       logging("Insufficient GPUs", 1);
       break;
     }
-    logging("Finding Allocation for Job " + std::to_string(job.getId()), 2);
+    logging("Finding Allocation for Job " + std::to_string(job.getId()));
     findPatterns(currTopo, job.pattern);
     // utils::print_patterns();
     filterPatterns(utils::foundPatterns, busyNodes);
@@ -159,8 +162,8 @@ void scheduleReadyJobs(std::string mgapPolicy)
     if (!alloc.pattern.empty())
     {
       job.startTime = getTimeNow();
-      logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime), 1);
-      logging("Allocation found", 1);
+      logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime));
+      logging("Allocation found");
       logging(alloc.pattern, 1);
       job.alloc = alloc;
       for (auto &node : alloc.pattern)
@@ -230,7 +233,6 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   std::cout << "Average Last Score " << avgLS << std::endl;
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;
-  logresults(jobFinished, 2, logFilename);
 
   return (endTime - startTime); // Return final execTime.
 }

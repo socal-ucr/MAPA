@@ -86,8 +86,8 @@ EdgeList getEdges(Pattern pattern, std::string topology)
       prev = pattern[i];
     }
   }
-  logging("Edges", 1);
-  logging(elist, 1);
+  logging("Edges");
+  logging(elist);
   return elist;
 }
 
@@ -101,5 +101,11 @@ uint32_t getLastScore(Pattern pattern, std::string topology)
   }
   return lastScore;
 }
+
+// uint32_t getPreservationScore(Pattern pattern, std::string topology)
+// {
+//   uint32_t preservationScore = 0;
+//   return preservationScore;
+// }
 
 #endif

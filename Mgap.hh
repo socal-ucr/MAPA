@@ -15,24 +15,14 @@
 
 void parseArgs(int argc, char** argv, std::string& mgapPolicy, std::string& systemArch, std::string& jobsFilename)
 {
-  mgapPolicy = "baselineV1";
-  systemArch = "dgx-v";
-
-  if ((argc == 1) || (argc > 4))
-    {
-      std::cout << argv[0] << " [POLICY_NAME] [SYSTEM_ARCH] JOBFILE" << std::endl;
-      exit(0);
-    }
-
-  if (argc == 3)
+  if ((argc < 4) || (argc > 4))
   {
-    mgapPolicy = argv[1];
-  }
-  else if (argc == 4)
-  {
-    systemArch = argv[2];
+    std::cout << argv[0] << " [POLICY_NAME] [SYSTEM_ARCH] JOBFILE" << std::endl;
+    exit(0);
   }
 
+  mgapPolicy = argv[1];
+  systemArch = argv[2];
   jobsFilename = argv[argc - 1];
 }
 

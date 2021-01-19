@@ -10,9 +10,6 @@
 
 #include "Peregrine.hh"
 
-// TODO(kiran): Implement an enum for LOGLEVEL.
-constexpr int LOGLEVEL = 1;
-
 using Pattern = std::vector<uint32_t>;
 using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
 using PatternVec = std::vector<Pattern>;
@@ -98,32 +95,23 @@ SmallGraph currTopo;
 SmallGraph hwTopo;
 BwMap bwmap;
 
-void logging(std::string str, int level)
+void logging(std::string str)
 {
-  if (level > LOGLEVEL)
-  {
-    std::cout << "LOG: " << str << std::endl;
-  }
+  std::cout << "LOG: " << str << std::endl;
 }
 
 template <typename T>
-void logging(std::vector<T> vec, int level)
+void logging(std::vector<T> vec)
 {
-  if (level > LOGLEVEL)
-  {
-    std::string str;
-    std::for_each(vec.begin(), vec.end(), [&](T elem) { str += std::to_string(elem); });
-    std::cout << "LOG: " << str << std::endl;
-  }
+  std::string str;
+  std::for_each(vec.begin(), vec.end(), [&](T elem) { str += std::to_string(elem); });
+  std::cout << "LOG: " << str << std::endl;
 }
 
 template <typename T>
-void logging(std::list<std::pair<T,T>> vec, int level)
+void logging(std::list<std::pair<T,T>> vec)
 {
-  if (level > LOGLEVEL)
-  {
-    std::for_each(vec.begin(), vec.end(), [&](std::pair<T, T> elem) { std::cout << elem.first << ":" << elem.second << std::endl; });
-  }
+  std::for_each(vec.begin(), vec.end(), [&](std::pair<T, T> elem) { std::cout << elem.first << ":" << elem.second << std::endl; });
 }
 
 void createLogFile(std::string logFilename)
@@ -161,35 +149,32 @@ void logresult(JobItem job, std::string logFilename)
 }
 
 //TODO(Kiran): logresult() makes this function obsolete. Purge it safely.
-void logresults(JobVec vec, int level, std::string logFilename)
+void logresults(JobVec vec, std::string logFilename)
 {
-  if (level > LOGLEVEL)
+  std::ofstream outFile;
+  outFile.open(logFilename);
+  outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
+  for (auto &elem : vec)
   {
-    std::ofstream outFile;
-    outFile.open(logFilename);
-    outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
-    for (auto &elem : vec)
+    std::string str;
+    str = std::to_string(elem.id);
+    str += " " + std::to_string(elem.startTime);
+    str += " " + std::to_string(elem.endTime);
+    str += " " + std::to_string(elem.queueTime);
+    str += " " + std::to_string(elem.execTime);
+    str += " " + std::to_string(elem.alloc.lastScore);
+    str += " " + std::to_string(elem.alloc.fragScore);
+    str += " " + std::to_string(elem.bwSensitive?1:0);
+    str += " " + std::to_string(elem.numGpus);
+    str += " ";
+    for (auto &node : elem.schedGPUs)
     {
-      std::string str;
-      str = std::to_string(elem.id);
-      str += " " + std::to_string(elem.startTime);
-      str += " " + std::to_string(elem.endTime);
-      str += " " + std::to_string(elem.queueTime);
-      str += " " + std::to_string(elem.execTime);
-      str += " " + std::to_string(elem.alloc.lastScore);
-      str += " " + std::to_string(elem.alloc.fragScore);
-      str += " " + std::to_string(elem.bwSensitive?1:0);
-      str += " " + std::to_string(elem.numGpus);
-      str += " ";
-      for (auto &node : elem.schedGPUs)
-      {
-        str += std::to_string(node) + ",";
-      }
-      str += "\n";
-      outFile << str;
+      str += std::to_string(node) + ",";
     }
-    outFile.close();
+    str += "\n";
+    outFile << str;
   }
+  outFile.close();
 }
 
 #endif
