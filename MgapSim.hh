@@ -23,6 +23,7 @@ int numGpus;
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
+extern uint32_t idealLastScore;
 
 bool isFinished(JobItem job, uint32_t cycles)
 {
@@ -39,7 +40,7 @@ void checkCompletedJobs()
   {
     if (isFinished(*jobIt, cycles))
     {
-      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(cycles), 1);
+      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(cycles));
       jobIt->endTime = cycles;
       jobIt->execTime = cycles - jobIt->startTime;
       for (auto &node : jobIt->schedGPUs)
@@ -86,14 +87,14 @@ void scheduleReadyJobs(std::string mgapPolicy)
 {
   for (auto &job : waitingJobs)
   {
-    logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()), 1);
-    logging("Required GPUs " + std::to_string(job.numGpus), 1);
+    logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()));
+    logging("Required GPUs " + std::to_string(job.numGpus));
     if (job.numGpus > (numGpus - busyNodes.size()))
     {
-      logging("Insufficient GPUs", 1);
+      logging("Insufficient GPUs");
       break;
     }
-    logging("Finding Allocation for Job " + std::to_string(job.getId()), 2);
+    logging("Finding Allocation for Job " + std::to_string(job.getId()));
     findPatterns(currTopo, job.pattern);
     // utils::print_patterns();
     filterPatterns(utils::foundPatterns, busyNodes);
@@ -101,11 +102,11 @@ void scheduleReadyJobs(std::string mgapPolicy)
     utils::clear_patterns();
     if (!alloc.pattern.empty())
     {
-      logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(cycles), 1);
+      logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(cycles));
       job.startTime = cycles;
       job.queueTime = cycles - job.arvlTime;
-      logging("Allocation found", 1);
-      logging(alloc.pattern, 1);
+      logging("Allocation found");
+      logging(alloc.pattern);
       job.alloc = alloc;
       for (auto &node : alloc.pattern)
       {
@@ -126,6 +127,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   bwmap = gpuSys.bwmap;
   currTopo = gpuSys.topology;
   hwTopo = gpuSys.topology;
+  idealLastScore = gpuSys.idealLastScore;
 
   readJobFile(jobsFilename);
 
@@ -139,7 +141,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 
   while (!jobList.empty() || !waitingJobs.empty() || !runningJobs.empty())
   {
-    logging("Cycle = " + std::to_string(cycles), 1);
+    logging("Cycle = " + std::to_string(cycles));
     if (!runningJobs.empty())
     {
       checkCompletedJobs();
@@ -164,7 +166,6 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   for (auto& job : jobFinished)
   {
     avgLS += job.alloc.lastScore;
-    job.alloc.fragScore = 1 - (static_cast<double>(job.alloc.lastScore) / (static_cast<double>(gpuSys.idealLastScore) * job.numGpus));
     avgFS += job.alloc.fragScore;
   }
 

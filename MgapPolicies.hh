@@ -17,13 +17,13 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   Allocation alloc;
   alloc.lastScore = 0;
 
-  logging("Iterating through Patterns in policy", 2);
+  logging("Iterating through Patterns in policy");
 
   for (auto &pattern : patterns)
   {
-    logging(pattern, 1);
+    logging(pattern);
     uint32_t currlastScore = getLastScore(pattern, job.topology);
-    logging("lastScore = " + std::to_string(currlastScore), 1);
+    logging("lastScore = " + std::to_string(currlastScore));
     if (alloc.lastScore < currlastScore)
     {
       alloc.pattern = pattern;
@@ -32,10 +32,11 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   }
   if (alloc.pattern.size())
   {
+    updateFragScore(alloc);
     alloc.edges = getEdges(alloc.pattern, job.topology);
   }
-  logging("Printing selected pattern\n", 1);
-  logging(alloc.pattern, 1);
+  logging("Selected pattern\n");
+  logging(alloc.pattern);
   return alloc;
 }
 
@@ -43,12 +44,12 @@ Allocation LASTbw(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
 
-  logging("Iterating through Patterns in policy", 2);
+  logging("Iterating through Patterns in policy");
   for (auto &pattern : patterns)
   {
-    logging(pattern, 1);
+    logging(pattern);
     uint32_t currlastScore = getLastScore(pattern, job.topology);
-    logging("lastScore = " + std::to_string(currlastScore), 1);
+    logging("lastScore = " + std::to_string(currlastScore));
 
     if (job.bwSensitive)
     {
@@ -74,10 +75,11 @@ Allocation LASTbw(PatternVec& patterns, JobItem job)
   }
   if (alloc.pattern.size())
   {
+    updateFragScore(alloc);
     alloc.edges = getEdges(alloc.pattern, job.topology);
   }
-  logging("Printing selected pattern\n", 1);
-  logging(alloc.pattern, 1);
+  logging("Printing selected pattern\n");
+  logging(alloc.pattern);
   return alloc;
 }
 
@@ -89,12 +91,13 @@ Allocation baselineV1(PatternVec& patterns, JobItem job)
   if (patterns.size())
   {
     auto pattern = patterns[0];
-    logging(pattern, 1);
+    logging(pattern);
     alloc.pattern = pattern;
     alloc.lastScore = getLastScore(pattern, job.topology);
+    updateFragScore(alloc);
     alloc.edges = getEdges(alloc.pattern, job.topology);
-    logging("Printing selected pattern\n", 1);
-    logging(alloc.pattern, 1);
+    logging("Printing selected pattern\n");
+    logging(alloc.pattern);
   }
 
   return alloc;
@@ -109,7 +112,7 @@ Allocation baselineV2(PatternVec& patterns, JobItem job)
     {
       for (auto &pattern : patterns)
       {
-        logging(pattern, 1);
+        logging(pattern);
         for (auto node : pattern)
         {
           if (((pattern[0] < 5) && (node > 4)) || ((pattern[0] > 4) && (node < 5)))
@@ -127,9 +130,10 @@ Allocation baselineV2(PatternVec& patterns, JobItem job)
               Allocation alloc;
               alloc.pattern = pattern;
               alloc.lastScore = getLastScore(pattern, job.topology);
+              updateFragScore(alloc);
               alloc.edges = getEdges(alloc.pattern, job.topology);
-              logging("Printing selected pattern\n", 1);
-              logging(alloc.pattern, 1);
+              logging("Printing selected pattern\n");
+              logging(alloc.pattern);
               return alloc;
             }
           }

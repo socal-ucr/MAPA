@@ -12,9 +12,9 @@
 #include "Props.hh"
 
 extern BwMap bwmap;
-
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
+extern uint32_t idealLastScore;
 
 void readJobFile(std::string fname)
 {
@@ -86,8 +86,8 @@ EdgeList getEdges(Pattern pattern, std::string topology)
       prev = pattern[i];
     }
   }
-  logging("Edges", 1);
-  logging(elist, 1);
+  logging("Edges");
+  logging(elist);
   return elist;
 }
 
@@ -101,5 +101,16 @@ uint32_t getLastScore(Pattern pattern, std::string topology)
   }
   return lastScore;
 }
+
+void updateFragScore(Allocation& alloc)
+{
+  alloc.fragScore = 1 - (static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore) * alloc.pattern.size()));
+}
+
+// uint32_t getPreservationScore(Pattern pattern, std::string topology)
+// {
+//   uint32_t preservationScore = 0;
+//   return preservationScore;
+// }
 
 #endif
