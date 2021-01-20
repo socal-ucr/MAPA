@@ -23,6 +23,7 @@ int numGpus;
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
+extern uint32_t idealLastScore;
 
 bool isFinished(JobItem job, uint32_t cycles)
 {
@@ -126,6 +127,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   bwmap = gpuSys.bwmap;
   currTopo = gpuSys.topology;
   hwTopo = gpuSys.topology;
+  idealLastScore = gpuSys.idealLastScore;
 
   readJobFile(jobsFilename);
 
@@ -164,7 +166,6 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   for (auto& job : jobFinished)
   {
     avgLS += job.alloc.lastScore;
-    job.alloc.fragScore = 1 - (static_cast<double>(job.alloc.lastScore) / (static_cast<double>(gpuSys.idealLastScore) * job.numGpus));
     avgFS += job.alloc.fragScore;
   }
 

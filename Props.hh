@@ -9,11 +9,58 @@
 #include <boost/lexical_cast.hpp>
 
 #include "Peregrine.hh"
+#include "GpuTopology.hh"
 
 using Pattern = std::vector<uint32_t>;
 using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
 using PatternVec = std::vector<Pattern>;
 using Nodes = Pattern;
+
+SmallGraph currTopo;
+SmallGraph hwTopo;
+BwMap bwmap;
+uint32_t idealLastScore;
+
+uint32_t getIdealLastScore(BwMap bwmap)
+{
+  uint32_t idealLscore = 0;
+  for (auto &outer : bwmap)
+  {
+    for (auto &inner : outer.second)
+    {
+      if (idealLscore < inner.second)
+      {
+        idealLscore = inner.second;
+      }
+    }
+  }
+  return idealLscore;
+}
+
+struct GpuSystem
+{
+  SmallGraph topology;
+  BwMap bwmap;
+  uint32_t idealLastScore;
+  uint32_t numGpus;
+
+  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num)
+  {
+    topology = topo;
+    bwmap = bmap;
+    numGpus = num;
+    idealLastScore = getIdealLastScore(bwmap);
+  }
+
+  GpuSystem(std::string arch)
+  {
+    topology = (arch == "summit") ? summitmesh() : cubemesh();
+    bwmap = getBwMat(arch);
+    numGpus = getNumGpusPerNode(arch);
+    idealLastScore = getIdealLastScore(bwmap);
+  }
+};
+
 struct Allocation
 {
   Pattern pattern;
@@ -90,10 +137,6 @@ struct JobItem
 using JobVec = std::vector<JobItem>;
 
 extern JobVec jobList; // Read from file.
-
-SmallGraph currTopo;
-SmallGraph hwTopo;
-BwMap bwmap;
 
 void logging(std::string str)
 {

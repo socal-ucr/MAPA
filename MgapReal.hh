@@ -13,18 +13,6 @@
 
 #include "Mgap.hh"
 
-// struct RunningJob
-// {
-//   JobItem job;
-//   int pid;
-//   int status; // Is this necessary?
-
-//   bool operator==(const RunningJob &a) const
-//   {
-//     return job.getId() == a.job.getId();
-//   }
-// };
-
 Nodes busyNodes;
 JobVec jobList;
 JobVec waitingJobs;  // Ready to be scheduled.
@@ -37,6 +25,7 @@ std::string logFilename;
 extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
+extern uint32_t idealLastScore;
 
 int forkProcess(JobItem& job)
 {
@@ -185,10 +174,11 @@ void scheduleReadyJobs(std::string mgapPolicy)
 
 uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 {
+  numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
   currTopo = gpuSys.topology;
   hwTopo = gpuSys.topology;
-  numGpus = gpuSys.numGpus;
+  idealLastScore = gpuSys.idealLastScore;
 
   readJobFile(jobsFilename);
 
