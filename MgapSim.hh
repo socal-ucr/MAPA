@@ -22,6 +22,7 @@ int numGpus;
 
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
+extern RouteBWmap routeBWmap;
 extern uint32_t idealLastScore;
 
 bool isFinished(JobItem job, uint32_t cycles)
@@ -124,6 +125,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 {
   numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
+  routeBWmap = gpuSys.routeBWmap;
   hwTopo = gpuSys.topology;
   idealLastScore = gpuSys.idealLastScore;
 

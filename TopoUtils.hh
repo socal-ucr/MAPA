@@ -12,6 +12,7 @@
 #include "Props.hh"
 
 extern BwMap bwmap;
+extern RouteBWmap routeBWmap;
 extern SmallGraph hwTopo;
 extern uint32_t idealLastScore;
 
@@ -69,6 +70,25 @@ uint32_t getLastScore(Pattern pattern, std::string topology)
   for (auto &edge : elist)
   {
     lastScore += (bwmap[edge.first][edge.second]).bw;
+  }
+  return lastScore;
+}
+
+uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
+{
+  uint32_t lastScore = 0;
+  EdgeList elist = getEdges(pattern, topology);
+  for (auto &edge : elist)
+  {
+    auto conn = bwmap[edge.first][edge.second];
+    if (conn.isPCIe() && routeBWmap.size())
+    {
+      lastScore += routeBWmap[edge.first][edge.second];
+    }
+    else
+    {
+      lastScore += conn.bw;
+    }
   }
   return lastScore;
 }

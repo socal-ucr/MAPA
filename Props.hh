@@ -18,6 +18,7 @@ using Nodes = Pattern;
 
 SmallGraph hwTopo;
 BwMap bwmap;
+RouteBWmap routeBWmap;
 uint32_t idealLastScore;
 
 uint32_t getIdealLastScore(BwMap bwmap)
@@ -40,15 +41,17 @@ struct GpuSystem
 {
   SmallGraph topology;
   BwMap bwmap;
+  RouteBWmap routeBWmap;
   uint32_t idealLastScore;
   uint32_t numGpus;
   std::string name;
 
-  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num, std::string arch)
+  GpuSystem(SmallGraph topo, BwMap bmap, RouteBWmap rmap, uint32_t num, std::string arch)
   {
     name = arch;
     topology = topo;
     bwmap = bmap;
+    routeBWmap = rmap;
     numGpus = num;
     idealLastScore = getIdealLastScore(bwmap);
   }
@@ -57,6 +60,7 @@ struct GpuSystem
   {
     name = arch;
     topology = (arch == "summit") ? summitmesh() : cubemesh();
+    routeBWmap = getRouteBWmap(arch);
     bwmap = getBwMat(arch);
     numGpus = getNumGpusPerNode(arch);
     idealLastScore = getIdealLastScore(bwmap);

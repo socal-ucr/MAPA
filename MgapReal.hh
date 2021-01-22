@@ -24,6 +24,7 @@ std::string logFilename;
 
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
+extern RouteBWmap routeBWmap;
 extern uint32_t idealLastScore;
 
 int forkProcess(JobItem& job)
@@ -175,6 +176,7 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
 {
   numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
+  routeBWmap = gpuSys.routeBWmap;
   hwTopo = gpuSys.topology;
   idealLastScore = gpuSys.idealLastScore;
 

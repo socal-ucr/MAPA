@@ -40,6 +40,34 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   return alloc;
 }
 
+Allocation LASTgreedyRoute(PatternVec &patterns, JobItem job)
+{
+  Allocation alloc;
+  alloc.lastScore = 0;
+
+  logging("Iterating through Patterns in policy");
+
+  for (auto &pattern : patterns)
+  {
+    logging(pattern);
+    uint32_t currlastScore = getLastScoreWithRoute(pattern, job.topology);
+    logging("lastScore = " + std::to_string(currlastScore));
+    if (alloc.lastScore < currlastScore)
+    {
+      alloc.pattern = pattern;
+      alloc.lastScore = currlastScore;
+    }
+  }
+  if (alloc.pattern.size())
+  {
+    updateFragScore(alloc);
+    alloc.edges = getEdges(alloc.pattern, job.topology);
+  }
+  logging("Selected pattern\n");
+  logging(alloc.pattern);
+  return alloc;
+}
+
 Allocation LASTbw(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
@@ -145,11 +173,11 @@ Allocation baselineV2(PatternVec& patterns, JobItem job)
   return Allocation {};
 }
 
-std::map<std::string, std::function<Allocation(PatternVec&, JobItem)>> policyMap =
-    {{"LASTgreedy", [](PatternVec& patterns, JobItem job) { return LASTgreedy(patterns, job); }},
-     {"LASTbw", [](PatternVec& patterns, JobItem job) { return LASTbw(patterns, job); }},
-     {"baselineV1", [](PatternVec& patterns, JobItem job) { return baselineV1(patterns, job); }},
-     {"baselineV2", [](PatternVec& patterns, JobItem job) { return baselineV2(patterns, job); }}
-    };
+std::map<std::string, std::function<Allocation(PatternVec &, JobItem)>> policyMap =
+    {{"LASTgreedy", [](PatternVec &patterns, JobItem job) { return LASTgreedy(patterns, job); }},
+     {"LASTgreedyRoute", [](PatternVec &patterns, JobItem job) { return LASTgreedyRoute(patterns, job); }},
+     {"LASTbw", [](PatternVec &patterns, JobItem job) { return LASTbw(patterns, job); }},
+     {"baselineV1", [](PatternVec &patterns, JobItem job) { return baselineV1(patterns, job); }},
+     {"baselineV2", [](PatternVec &patterns, JobItem job) { return baselineV2(patterns, job); }}};
 
 #endif
