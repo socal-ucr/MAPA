@@ -52,7 +52,18 @@ SmallGraph cubemesh(bool nvlinks = true, bool pcilinks = true)
   }
   if (pcilinks)
   {
-
+    edge_list.emplace_back(1, 6);
+    edge_list.emplace_back(1, 7);
+    edge_list.emplace_back(1, 8);
+    edge_list.emplace_back(2, 5);
+    edge_list.emplace_back(2, 7);
+    edge_list.emplace_back(2, 8);
+    edge_list.emplace_back(3, 5);
+    edge_list.emplace_back(3, 6);
+    edge_list.emplace_back(3, 8);
+    edge_list.emplace_back(4, 5);
+    edge_list.emplace_back(4, 6);
+    edge_list.emplace_back(4, 7);
   }
   return SmallGraph(edge_list);
 }
@@ -99,10 +110,8 @@ BwMap populateSymmetry(BwMap bwmap)
 BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
 {
   BwMap bwmap;
-  // Add remaining links for preservation score.
   if (sysName == "dgx-v")
   {
-    // NVLinks
     if (nvlinks)
     {
       bwmap[1][2] = 25;
@@ -123,30 +132,56 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
     }
     if (pcilinks)
     {
-      
+      bwmap[1][6] = 10;
+      bwmap[1][7] = 10;
+      bwmap[1][8] = 10;
+      bwmap[2][5] = 10;
+      bwmap[2][7] = 10;
+      bwmap[2][8] = 10;
+      bwmap[3][5] = 10;
+      bwmap[3][6] = 10;
+      bwmap[3][8] = 10;
+      bwmap[4][5] = 10;
+      bwmap[4][6] = 10;
+      bwmap[4][7] = 10;
     }
-    // PCIe Links
   }
 
   else if (sysName == "dgx-p")
   {
-    // NVLinks
-    bwmap[1][2] = 20;
-    bwmap[1][3] = 20;
-    bwmap[1][4] = 20;
-    bwmap[1][5] = 20;
-    bwmap[2][3] = 20;
-    bwmap[2][4] = 20;
-    bwmap[2][6] = 20;
-    bwmap[3][4] = 20;
-    bwmap[3][7] = 20;
-    bwmap[5][8] = 20;
-    bwmap[5][6] = 20;
-    bwmap[5][7] = 20;
-    bwmap[6][7] = 20;
-    bwmap[6][8] = 20;
-    bwmap[7][8] = 20;
-    // PCIe Links
+    if (nvlinks)
+    {
+      bwmap[1][2] = 20;
+      bwmap[1][3] = 20;
+      bwmap[1][4] = 20;
+      bwmap[1][5] = 20;
+      bwmap[2][3] = 20;
+      bwmap[2][4] = 20;
+      bwmap[2][6] = 20;
+      bwmap[3][4] = 20;
+      bwmap[3][7] = 20;
+      bwmap[5][8] = 20;
+      bwmap[5][6] = 20;
+      bwmap[5][7] = 20;
+      bwmap[6][7] = 20;
+      bwmap[6][8] = 20;
+      bwmap[7][8] = 20;
+    }
+    if (pcilinks)
+    {
+      bwmap[1][6] = 10;
+      bwmap[1][7] = 10;
+      bwmap[1][8] = 10;
+      bwmap[2][5] = 10;
+      bwmap[2][7] = 10;
+      bwmap[2][8] = 10;
+      bwmap[3][5] = 10;
+      bwmap[3][6] = 10;
+      bwmap[3][8] = 10;
+      bwmap[4][5] = 10;
+      bwmap[4][6] = 10;
+      bwmap[4][7] = 10;
+    }
   }
   else if (sysName == "summit")
   {

@@ -43,9 +43,11 @@ struct GpuSystem
   BwMap bwmap;
   uint32_t idealLastScore;
   uint32_t numGpus;
+  std::string name;
 
-  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num)
+  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num, std::string arch)
   {
+    name = arch;
     topology = topo;
     bwmap = bmap;
     numGpus = num;
@@ -54,6 +56,7 @@ struct GpuSystem
 
   GpuSystem(std::string arch)
   {
+    name = arch;
     topology = (arch == "summit") ? summitmesh() : cubemesh();
     bwmap = getBwMat(arch);
     numGpus = getNumGpusPerNode(arch);
@@ -161,7 +164,7 @@ void createLogFile(std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
+  outFile << "ID startTime endTime queueTime execTime lastScore fragScore bwSensitive numGpus schedGpus\n";
   outFile.close();
 }
 

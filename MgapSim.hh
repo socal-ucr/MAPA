@@ -131,7 +131,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 
   readJobFile(jobsFilename);
 
-  logFilename = jobsFilename + mgapPolicy + "SimLog.csv";
+  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "SimLog.csv";
 
   createLogFile(logFilename);
 
