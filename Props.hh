@@ -16,7 +16,6 @@ using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
 using PatternVec = std::vector<Pattern>;
 using Nodes = Pattern;
 
-SmallGraph currTopo;
 SmallGraph hwTopo;
 BwMap bwmap;
 uint32_t idealLastScore;
@@ -28,9 +27,9 @@ uint32_t getIdealLastScore(BwMap bwmap)
   {
     for (auto &inner : outer.second)
     {
-      if (idealLscore < inner.second)
+      if (idealLscore < inner.second.bw)
       {
-        idealLscore = inner.second;
+        idealLscore = inner.second.bw;
       }
     }
   }

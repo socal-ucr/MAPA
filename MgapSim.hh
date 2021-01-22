@@ -20,7 +20,6 @@ std::string logFilename;
 long int cycles = 0;
 int numGpus;
 
-extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
 extern uint32_t idealLastScore;
@@ -95,7 +94,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
       break;
     }
     logging("Finding Allocation for Job " + std::to_string(job.getId()));
-    findPatterns(currTopo, job.pattern);
+    findPatterns(hwTopo, job.pattern);
     // utils::print_patterns();
     filterPatterns(utils::foundPatterns, busyNodes);
     auto alloc = choosePattern(utils::foundPatterns, job, mgapPolicy);
@@ -125,7 +124,6 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 {
   numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
-  currTopo = gpuSys.topology;
   hwTopo = gpuSys.topology;
   idealLastScore = gpuSys.idealLastScore;
 

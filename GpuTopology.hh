@@ -8,7 +8,26 @@
 #include "Peregrine.hh"
 
 using SmallGraph = Peregrine::SmallGraph;
-using BwMap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
+struct BW
+{
+  uint32_t bw; // Bandwidth of the edge
+  enum LinkType {PCIe, NVLink} link;
+
+  BW() {}
+
+  BW (uint32_t bandwidth, LinkType gpuLink)
+  {
+    bw = bandwidth;
+    link = gpuLink;
+  }
+
+  bool isPCIe()
+  {
+    return (link == LinkType::PCIe);
+  }
+};
+
+using BwMap = std::map<uint32_t, std::map<uint32_t, struct BW>>;
 using numGpuMat = std::map<std::string, uint32_t>;
 
 uint32_t getNumGpusPerNode(std::string topoName)
@@ -114,36 +133,36 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
   {
     if (nvlinks)
     {
-      bwmap[1][2] = 25;
-      bwmap[1][3] = 25;
-      bwmap[1][4] = 50;
-      bwmap[1][5] = 50;
-      bwmap[2][3] = 50;
-      bwmap[2][4] = 25;
-      bwmap[2][6] = 50;
-      bwmap[3][4] = 50;
-      bwmap[3][7] = 25;
-      bwmap[5][8] = 50;
-      bwmap[5][6] = 25;
-      bwmap[5][7] = 25;
-      bwmap[6][7] = 50;
-      bwmap[6][8] = 25;
-      bwmap[7][8] = 50;
+      bwmap[1][2] = BW(25, BW::LinkType::NVLink);
+      bwmap[1][3] = BW(25, BW::LinkType::NVLink);
+      bwmap[1][4] = BW(50, BW::LinkType::NVLink);
+      bwmap[1][5] = BW(50, BW::LinkType::NVLink);
+      bwmap[2][3] = BW(50, BW::LinkType::NVLink);
+      bwmap[2][4] = BW(25, BW::LinkType::NVLink);
+      bwmap[2][6] = BW(50, BW::LinkType::NVLink);
+      bwmap[3][4] = BW(50, BW::LinkType::NVLink);
+      bwmap[3][7] = BW(25, BW::LinkType::NVLink);
+      bwmap[5][8] = BW(50, BW::LinkType::NVLink);
+      bwmap[5][6] = BW(25, BW::LinkType::NVLink);
+      bwmap[5][7] = BW(25, BW::LinkType::NVLink);
+      bwmap[6][7] = BW(50, BW::LinkType::NVLink);
+      bwmap[6][8] = BW(25, BW::LinkType::NVLink);
+      bwmap[7][8] = BW(50, BW::LinkType::NVLink);
     }
     if (pcilinks)
     {
-      bwmap[1][6] = 10;
-      bwmap[1][7] = 10;
-      bwmap[1][8] = 10;
-      bwmap[2][5] = 10;
-      bwmap[2][7] = 10;
-      bwmap[2][8] = 10;
-      bwmap[3][5] = 10;
-      bwmap[3][6] = 10;
-      bwmap[3][8] = 10;
-      bwmap[4][5] = 10;
-      bwmap[4][6] = 10;
-      bwmap[4][7] = 10;
+      bwmap[1][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[1][7] = BW(10, BW::LinkType::PCIe);
+      bwmap[1][8] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][7] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][8] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][8] = BW(10, BW::LinkType::PCIe);
+      bwmap[4][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[4][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[4][7] = BW(10, BW::LinkType::PCIe);
     }
   }
 
@@ -151,60 +170,60 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
   {
     if (nvlinks)
     {
-      bwmap[1][2] = 20;
-      bwmap[1][3] = 20;
-      bwmap[1][4] = 20;
-      bwmap[1][5] = 20;
-      bwmap[2][3] = 20;
-      bwmap[2][4] = 20;
-      bwmap[2][6] = 20;
-      bwmap[3][4] = 20;
-      bwmap[3][7] = 20;
-      bwmap[5][8] = 20;
-      bwmap[5][6] = 20;
-      bwmap[5][7] = 20;
-      bwmap[6][7] = 20;
-      bwmap[6][8] = 20;
-      bwmap[7][8] = 20;
+      bwmap[1][2] = BW(20, BW::LinkType::NVLink);
+      bwmap[1][3] = BW(20, BW::LinkType::NVLink);
+      bwmap[1][4] = BW(20, BW::LinkType::NVLink);
+      bwmap[1][5] = BW(20, BW::LinkType::NVLink);
+      bwmap[2][3] = BW(20, BW::LinkType::NVLink);
+      bwmap[2][4] = BW(20, BW::LinkType::NVLink);
+      bwmap[2][6] = BW(20, BW::LinkType::NVLink);
+      bwmap[3][4] = BW(20, BW::LinkType::NVLink);
+      bwmap[3][7] = BW(20, BW::LinkType::NVLink);
+      bwmap[5][8] = BW(20, BW::LinkType::NVLink);
+      bwmap[5][6] = BW(20, BW::LinkType::NVLink);
+      bwmap[5][7] = BW(20, BW::LinkType::NVLink);
+      bwmap[6][7] = BW(20, BW::LinkType::NVLink);
+      bwmap[6][8] = BW(20, BW::LinkType::NVLink);
+      bwmap[7][8] = BW(20, BW::LinkType::NVLink);
     }
     if (pcilinks)
     {
-      bwmap[1][6] = 10;
-      bwmap[1][7] = 10;
-      bwmap[1][8] = 10;
-      bwmap[2][5] = 10;
-      bwmap[2][7] = 10;
-      bwmap[2][8] = 10;
-      bwmap[3][5] = 10;
-      bwmap[3][6] = 10;
-      bwmap[3][8] = 10;
-      bwmap[4][5] = 10;
-      bwmap[4][6] = 10;
-      bwmap[4][7] = 10;
+      bwmap[1][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[1][7] = BW(10, BW::LinkType::PCIe);
+      bwmap[1][8] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][7] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][8] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][8] = BW(10, BW::LinkType::PCIe);
+      bwmap[4][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[4][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[4][7] = BW(10, BW::LinkType::PCIe);
     }
   }
   else if (sysName == "summit")
   {
     if (nvlinks)
     {
-      bwmap[1][2] = 20;
-      bwmap[2][3] = 20;
-      bwmap[3][1] = 20;
-      bwmap[4][5] = 20;
-      bwmap[5][6] = 20;
-      bwmap[6][4] = 20;
+      bwmap[1][2] = BW(50, BW::LinkType::NVLink);
+      bwmap[2][3] = BW(50, BW::LinkType::NVLink);
+      bwmap[3][1] = BW(50, BW::LinkType::NVLink);
+      bwmap[4][5] = BW(50, BW::LinkType::NVLink);
+      bwmap[5][6] = BW(50, BW::LinkType::NVLink);
+      bwmap[6][4] = BW(50, BW::LinkType::NVLink);
     }
     if (pcilinks)
     {
-      bwmap[1][4] = 10;
-      bwmap[1][5] = 10;
-      bwmap[1][6] = 10;
-      bwmap[2][4] = 10;
-      bwmap[2][5] = 10;
-      bwmap[2][6] = 10;
-      bwmap[3][4] = 10;
-      bwmap[3][5] = 10;
-      bwmap[3][6] = 10;
+      bwmap[1][4] = BW(10, BW::LinkType::PCIe);
+      bwmap[1][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[1][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][4] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[2][6] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][4] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][5] = BW(10, BW::LinkType::PCIe);
+      bwmap[3][6] = BW(10, BW::LinkType::PCIe);
     }
   }
   return populateSymmetry(bwmap);
