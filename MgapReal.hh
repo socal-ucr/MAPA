@@ -182,6 +182,10 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
 
   readJobFile(jobsFilename);
 
+  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "RealLog.csv";
+
+  createLogFile(logFilename);
+
   std::cout << "Starting Run" << std::endl << std::endl;
   std::cout << "Jobfile: " << jobsFilename << std::endl;
   std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
@@ -213,13 +217,11 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   for (auto& job : jobFinished)
   {
     avgLS += job.alloc.lastScore;
-    job.alloc.fragScore = 1 - (static_cast<double>(job.alloc.lastScore) / (static_cast<double>(gpuSys.idealLastScore) * job.numGpus));
     avgFS += job.alloc.fragScore;
   }
   avgLS /= jobFinished.size();
   avgFS /= jobFinished.size();
 
-  std::string logFilename = jobsFilename + mgapPolicy + "RealLog.csv";
   std::cout << "Average Last Score " << avgLS << std::endl;
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;

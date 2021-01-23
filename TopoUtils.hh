@@ -89,6 +89,8 @@ uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
     {
       lastScore += conn.bw;
     }
+    auto bw = bwmap[edge.first][edge.second].bw;
+    lastScore += bw;
   }
   return lastScore;
 }

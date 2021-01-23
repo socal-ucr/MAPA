@@ -10,19 +10,13 @@
 using SmallGraph = Peregrine::SmallGraph;
 struct BW
 {
+  // NOTE(Kiran): WARNING! This datastructure fails to check if the key does not exist.
   uint32_t bw; // Bandwidth of the edge
   enum LinkType {PCIe, NVLink} link;
 
   BW() {}
 
-  BW operator=(const BW& b)
-  {
-    bw = b.bw;
-    link = b.link;
-    return *this;
-  }
-
-  BW(uint32_t bandwidth, LinkType gpuLink)
+  BW (uint32_t bandwidth, LinkType gpuLink)
   {
     bw = bandwidth;
     link = gpuLink;
@@ -34,8 +28,7 @@ struct BW
   }
 };
 
-using BwMap = std::map<uint32_t, std::map<uint32_t, struct BW>>;
-using RouteBWmap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
+using BwMap = std::map<uint32_t, std::map<uint32_t, BW>>;
 using numGpuMat = std::map<std::string, uint32_t>;
 
 uint32_t getNumGpusPerNode(std::string topoName)
@@ -124,11 +117,11 @@ SmallGraph summitmesh(bool nvlinks = true, bool pcilinks = true)
 
 BwMap populateSymmetry(BwMap bwmap)
 {
-  for (auto &i : bwmap)
+  for (auto i : bwmap)
   {
-    for (auto &j : i.second)
+    for (auto j : i.second)
     {
-      bwmap[j.first][i.first] = j.second;
+      bwmap[j.first][i.first] = BW((j.second).bw, (j.second).link);
     }
   }
   return bwmap;
@@ -183,6 +176,7 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
       bwmap[2][6] = BW(50, BW::LinkType::NVLink);
       bwmap[3][4] = BW(50, BW::LinkType::NVLink);
       bwmap[3][7] = BW(25, BW::LinkType::NVLink);
+      bwmap[4][8] = BW(25, BW::LinkType::NVLink);
       bwmap[5][8] = BW(50, BW::LinkType::NVLink);
       bwmap[5][6] = BW(25, BW::LinkType::NVLink);
       bwmap[5][7] = BW(25, BW::LinkType::NVLink);
@@ -220,6 +214,7 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
       bwmap[2][6] = BW(20, BW::LinkType::NVLink);
       bwmap[3][4] = BW(20, BW::LinkType::NVLink);
       bwmap[3][7] = BW(20, BW::LinkType::NVLink);
+      bwmap[4][8] = BW(20, BW::LinkType::NVLink);
       bwmap[5][8] = BW(20, BW::LinkType::NVLink);
       bwmap[5][6] = BW(20, BW::LinkType::NVLink);
       bwmap[5][7] = BW(20, BW::LinkType::NVLink);
