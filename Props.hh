@@ -16,7 +16,6 @@ using EdgeList = std::list<std::pair<uint32_t, uint32_t>>;
 using PatternVec = std::vector<Pattern>;
 using Nodes = Pattern;
 
-SmallGraph currTopo;
 SmallGraph hwTopo;
 BwMap bwmap;
 uint32_t idealLastScore;
@@ -28,9 +27,9 @@ uint32_t getIdealLastScore(BwMap bwmap)
   {
     for (auto &inner : outer.second)
     {
-      if (idealLscore < inner.second)
+      if (idealLscore < inner.second.bw)
       {
-        idealLscore = inner.second;
+        idealLscore = inner.second.bw;
       }
     }
   }
@@ -43,9 +42,11 @@ struct GpuSystem
   BwMap bwmap;
   uint32_t idealLastScore;
   uint32_t numGpus;
+  std::string name;
 
-  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num)
+  GpuSystem(SmallGraph topo, BwMap bmap, uint32_t num, std::string arch)
   {
+    name = arch;
     topology = topo;
     bwmap = bmap;
     numGpus = num;
@@ -54,6 +55,7 @@ struct GpuSystem
 
   GpuSystem(std::string arch)
   {
+    name = arch;
     topology = (arch == "summit") ? summitmesh() : cubemesh();
     bwmap = getBwMat(arch);
     numGpus = getNumGpusPerNode(arch);
@@ -161,7 +163,7 @@ void createLogFile(std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
+  outFile << "ID startTime endTime queueTime execTime lastScore fragScore bwSensitive numGpus schedGpus\n";
   outFile.close();
 }
 

@@ -22,7 +22,6 @@ int numGpus;
 
 std::string logFilename;
 
-extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
 extern uint32_t idealLastScore;
@@ -143,7 +142,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
       break;
     }
     logging("Finding Allocation for Job " + std::to_string(job.getId()));
-    findPatterns(currTopo, job.pattern);
+    findPatterns(hwTopo, job.pattern);
     // utils::print_patterns();
     filterPatterns(utils::foundPatterns, busyNodes);
     auto alloc = choosePattern(utils::foundPatterns, job, mgapPolicy);
@@ -176,11 +175,14 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
 {
   numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
-  currTopo = gpuSys.topology;
   hwTopo = gpuSys.topology;
   idealLastScore = gpuSys.idealLastScore;
 
   readJobFile(jobsFilename);
+
+  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "RealLog.csv";
+
+  createLogFile(logFilename);
 
   std::cout << "Starting Run" << std::endl << std::endl;
   std::cout << "Jobfile: " << jobsFilename << std::endl;
@@ -213,13 +215,11 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   for (auto& job : jobFinished)
   {
     avgLS += job.alloc.lastScore;
-    job.alloc.fragScore = 1 - (static_cast<double>(job.alloc.lastScore) / (static_cast<double>(gpuSys.idealLastScore) * job.numGpus));
     avgFS += job.alloc.fragScore;
   }
   avgLS /= jobFinished.size();
   avgFS /= jobFinished.size();
 
-  std::string logFilename = jobsFilename + mgapPolicy + "RealLog.csv";
   std::cout << "Average Last Score " << avgLS << std::endl;
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;

@@ -12,7 +12,6 @@
 #include "Props.hh"
 
 extern BwMap bwmap;
-extern SmallGraph currTopo;
 extern SmallGraph hwTopo;
 extern uint32_t idealLastScore;
 
@@ -46,34 +45,6 @@ void readJobFile(std::string fname)
   }
 }
 
-// TODO(kiran): add and remove nodes might not be necessary if we are filtering patterns.
-void removeNodes(Pattern pattern)
-{
-  Nodes neighbours;
-  for (auto &node : pattern)
-  {
-    neighbours = currTopo.get_neighbours(node);
-    for (auto &neighbour : neighbours)
-    {
-      currTopo.remove_edge(node, neighbour);
-    }
-  }
-}
-
-void addNodes(Pattern pattern)
-{
-  Nodes neighbours;
-  for (auto &node : pattern)
-  {
-    std::cout << "Getting neigh for " << node << std::endl;
-    neighbours = hwTopo.get_neighbours(node);
-    for (auto &neighbour : neighbours)
-    {
-      currTopo.add_edge(node, neighbour);
-    }
-  }
-}
-
 EdgeList getEdges(Pattern pattern, std::string topology)
 {
   EdgeList elist;
@@ -97,7 +68,8 @@ uint32_t getLastScore(Pattern pattern, std::string topology)
   EdgeList elist = getEdges(pattern, topology);
   for (auto &edge : elist)
   {
-    lastScore += bwmap[edge.first][edge.second];
+    auto bw = bwmap[edge.first][edge.second].bw;
+    lastScore += bw;
   }
   return lastScore;
 }
