@@ -29,6 +29,7 @@ struct BW
 };
 
 using BwMap = std::map<uint32_t, std::map<uint32_t, BW>>;
+using RouteBWmap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
 using numGpuMat = std::map<std::string, uint32_t>;
 
 uint32_t getNumGpusPerNode(std::string topoName)
@@ -130,7 +131,7 @@ BwMap populateSymmetry(BwMap bwmap)
 RouteBWmap getRouteBWmap(std::string sysName)
 {
   RouteBWmap rmap;
-  if ((sysName == "dgx-v") || (sysName == "dgx-p"))
+  if ((sysName == "dgx-v"))
   {
     rmap[1][6] = 50;
     rmap[1][7] = 25;
