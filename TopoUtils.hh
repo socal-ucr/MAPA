@@ -95,7 +95,7 @@ void filterPatterns(PatternVec &patterns, Nodes busyNodes = busyNodes)
   }
 }
 
-EdgeList getEdges(Pattern pattern, std::string topology)
+EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = false)
 {
   EdgeList elist;
   if (topology == "ring")
@@ -113,7 +113,17 @@ EdgeList getEdges(Pattern pattern, std::string topology)
     {
       for (size_t j = (i + 1); j < pattern.size(); j++)
       {
-        elist.push_back(std::make_pair(pattern[i], pattern[j]));
+        if (nvlinksOnly)
+        {
+          if (!bwmap[pattern[i]][pattern[j]].isPCIe())
+          {
+            elist.push_back(std::make_pair(pattern[i], pattern[j]));
+          }
+        }
+        else
+        {
+          elist.push_back(std::make_pair(pattern[i], pattern[j]));
+        }
       }
     }
   }
@@ -122,10 +132,10 @@ EdgeList getEdges(Pattern pattern, std::string topology)
   return elist;
 }
 
-uint32_t getLastScore(Pattern pattern, std::string topology)
+uint32_t getLastScore(Pattern pattern, std::string topology, bool nvlinksOnly = false)
 {
   uint32_t lastScore = 0;
-  EdgeList elist = getEdges(pattern, topology);
+  EdgeList elist = getEdges(pattern, topology, nvlinksOnly);
   for (auto &edge : elist)
   {
     lastScore += (bwmap[edge.first][edge.second]).bw;
@@ -163,7 +173,7 @@ uint32_t getPreservationScore(Pattern pattern)
   if (remainingNodes.size())
   {
     logging(remainingNodes);
-    pScore = getLastScore(remainingNodes, "all");
+    pScore = getLastScore(remainingNodes, "all", true);
   }
 
   return pScore;
