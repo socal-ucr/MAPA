@@ -121,7 +121,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
   return;
 }
 
-long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
+void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 {
   numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
@@ -131,7 +131,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
 
   readJobFile(jobsFilename);
 
-  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "SimLog.csv";
+  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "Log.csv";
 
   createLogFile(logFilename);
 
@@ -176,7 +176,7 @@ long int simulate(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPo
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;
 
-  return cycles;
+  return;
 }
 
 #endif

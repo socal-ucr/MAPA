@@ -13,8 +13,7 @@ int main(int argc, char **argv)
 
   auto gpuSys = GpuSystem(systemArch);
 
-  auto totRuntime = realRun(jobsFilename, gpuSys, mgapPolicy);
-  std::cout << "Total Runtime " << totRuntime << std::endl;
+  run(jobsFilename, gpuSys, mgapPolicy);
 
   return (0);
 }

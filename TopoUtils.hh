@@ -55,6 +55,17 @@ void erase(Vec &vec, T item)
             vec.end());
 }
 
+template <typename Vec>
+void erase(Vec &vecA, Vec &vecB)
+{
+  for (auto elemB : vecB)
+  {
+    vecA.erase(std::remove_if(vecA.begin(), vecA.end(),
+                            [elemB](auto &elemA) { return elemA == elemB; }),
+              vecA.end());
+  }
+}
+
 template <typename Vec, typename T>
 void moveItem(Vec &destVec, Vec &sourceVec, T item)
 {
@@ -144,26 +155,18 @@ uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
 uint32_t getPreservationScore(Pattern pattern)
 {
   uint32_t pScore = 0;
-  Pattern excludeNodes;
-  std::vector<SmallGraph> remainderHWtopo;
-  uint32_t remainingNodes = hwTopo.num_vertices() - busyNodes.size() - pattern.size();
-  std::cout << "Remaining Nodes = " << remainingNodes << std::endl;
-  remainderHWtopo.emplace_back(Peregrine::PatternGenerator::allToAll(remainingNodes));
-  utils::clear_patterns();
-  std::cout << "Tring to find Preserve patterns" << std::endl;
-  findPatterns(hwTopo, remainderHWtopo);
-  std::cout << "Tring to add exclude nodes" << std::endl;
-  excludeNodes.insert(excludeNodes.end(), busyNodes.begin(), busyNodes.end());
-  excludeNodes.insert(excludeNodes.end(), pattern.begin(), pattern.end());
-  std::cout << "Tring to filter exclude nodes from patterns" << std::endl;
-  filterPatterns(utils::foundPatterns, excludeNodes);
-  logging("Possible preserved patterns = " + std::to_string(utils::foundPatterns.size()));
-  // NOTE(Kiran): Theoretically there should be only one(?) foundPattern after filter().
-  for (auto &p : utils::foundPatterns)
+
+  auto remainingNodes = hwTopo.v_list();
+  erase(remainingNodes, busyNodes);
+  erase(remainingNodes, pattern);
+
+  if (remainingNodes.size())
   {
-    pScore += getLastScore(p, "all");
+    logging(remainingNodes);
+    pScore = getLastScore(remainingNodes, "all");
   }
-  return (pScore / utils::foundPatterns.size());
+
+  return pScore;
 }
 
 void updateFragScore(Allocation &alloc)

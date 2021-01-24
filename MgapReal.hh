@@ -172,7 +172,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
   return;
 }
 
-uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
+void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 {
   numGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
@@ -182,7 +182,7 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
 
   readJobFile(jobsFilename);
 
-  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "RealLog.csv";
+  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "Log.csv";
 
   createLogFile(logFilename);
 
@@ -226,7 +226,7 @@ uint32_t realRun(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPol
   std::cout << "Average Frag Score " << avgFS << std::endl;
   std::cout << "Logging results to " << logFilename << std::endl;
 
-  return (endTime - startTime); // Return final execTime.
+  return;
 }
 
 #endif
