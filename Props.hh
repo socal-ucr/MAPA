@@ -37,6 +37,23 @@ uint32_t getIdealLastScore(BwMap bwmap)
   return idealLscore;
 }
 
+// NOTE(Kiran): Check if this is necessary.
+uint32_t getTotalLastScore(BwMap bwmap)
+{
+  uint32_t totalLscore = 0;
+  for (auto &outer : bwmap)
+  {
+    for (auto &inner : outer.second)
+    {
+      if (!inner.second.isPCIe())
+      {
+        totalLscore += inner.second.bw;
+      }
+    }
+  }
+  return totalLscore;
+}
+
 struct GpuSystem
 {
   SmallGraph topology;
@@ -71,6 +88,7 @@ struct Allocation
 {
   Pattern pattern;
   uint32_t lastScore;
+  uint32_t preserveScore;
   double fragScore;
   Nodes vertices;
   Nodes antiVertices;
@@ -153,14 +171,14 @@ template <typename T>
 void logging(std::vector<T> vec)
 {
   std::string str;
-  std::for_each(vec.begin(), vec.end(), [&](T elem) { str += std::to_string(elem); });
+  std::for_each(vec.begin(), vec.end(), [&](T elem) { str += std::to_string(elem) + " "; });
   std::cout << "LOG: " << str << std::endl;
 }
 
 template <typename T>
 void logging(std::list<std::pair<T,T>> vec)
 {
-  std::for_each(vec.begin(), vec.end(), [&](std::pair<T, T> elem) { std::cout << elem.first << ":" << elem.second << std::endl; });
+  std::for_each(vec.begin(), vec.end(), [&](std::pair<T, T> elem) { std::cout << elem.first << ": " << elem.second << std::endl; });
 }
 
 void createLogFile(std::string logFilename)

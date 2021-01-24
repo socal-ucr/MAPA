@@ -15,10 +15,11 @@ extern BwMap bwmap;
 extern RouteBWmap routeBWmap;
 extern SmallGraph hwTopo;
 extern uint32_t idealLastScore;
+extern Nodes busyNodes;
 
 void readJobFile(std::string fname)
 {
-  // Format: numGpus, topology, arrivalTime, executionTime, bwSensitivity
+  // Format: numGpus, topology, arrivalTime, executionTime(for simulation), bwSensitivity
   std::ifstream jobFile(fname);
   std::string line;
   std::list<std::list<std::string>> jobs;
@@ -46,6 +47,43 @@ void readJobFile(std::string fname)
   }
 }
 
+template <typename Vec, typename T>
+void erase(Vec &vec, T item)
+{
+  vec.erase(std::remove_if(vec.begin(), vec.end(),
+                           [item](auto &elem) { return elem.getId() == item.getId(); }),
+            vec.end());
+}
+
+template <typename Vec, typename T>
+void moveItem(Vec &destVec, Vec &sourceVec, T item)
+{
+  destVec.emplace_back(item);
+  erase(sourceVec, item);
+}
+
+void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
+{
+  using namespace Peregrine;
+  size_t nthreads = 1;
+  std::vector<uint32_t> testingVec;
+  const auto callback = [](auto &&handle, auto &&match) {
+    handle.map(match.pattern, 1);
+    utils::store_pattern(match.mapping);
+  };
+  auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(topo, appTopo, nthreads, callback);
+}
+
+void filterPatterns(PatternVec &patterns, Nodes busyNodes = busyNodes)
+{
+  for (auto &busynode : busyNodes)
+  {
+    patterns.erase(std::remove_if(patterns.begin(), patterns.end(),
+                                  [busynode](auto &pattern) { return std::find(pattern.begin(), pattern.end(), busynode) != pattern.end(); }),
+                   patterns.end());
+  }
+}
+
 EdgeList getEdges(Pattern pattern, std::string topology)
 {
   EdgeList elist;
@@ -56,6 +94,16 @@ EdgeList getEdges(Pattern pattern, std::string topology)
     {
       elist.push_back(std::make_pair(prev, pattern[i]));
       prev = pattern[i];
+    }
+  }
+  if (topology == "all")
+  {
+    for (size_t i = 0; i < pattern.size() - 1; i++)
+    {
+      for (size_t j = (i + 1); j < pattern.size(); j++)
+      {
+        elist.push_back(std::make_pair(pattern[i], pattern[j]));
+      }
     }
   }
   logging("Edges");
@@ -93,15 +141,35 @@ uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
   return lastScore;
 }
 
-void updateFragScore(Allocation& alloc)
+uint32_t getPreservationScore(Pattern pattern)
+{
+  uint32_t pScore = 0;
+  Pattern excludeNodes;
+  std::vector<SmallGraph> remainderHWtopo;
+  uint32_t remainingNodes = hwTopo.num_vertices() - busyNodes.size() - pattern.size();
+  std::cout << "Remaining Nodes = " << remainingNodes << std::endl;
+  remainderHWtopo.emplace_back(Peregrine::PatternGenerator::allToAll(remainingNodes));
+  utils::clear_patterns();
+  std::cout << "Tring to find Preserve patterns" << std::endl;
+  findPatterns(hwTopo, remainderHWtopo);
+  std::cout << "Tring to add exclude nodes" << std::endl;
+  excludeNodes.insert(excludeNodes.end(), busyNodes.begin(), busyNodes.end());
+  excludeNodes.insert(excludeNodes.end(), pattern.begin(), pattern.end());
+  std::cout << "Tring to filter exclude nodes from patterns" << std::endl;
+  filterPatterns(utils::foundPatterns, excludeNodes);
+  logging("Possible preserved patterns = " + std::to_string(utils::foundPatterns.size()));
+  // NOTE(Kiran): Theoretically there should be only one(?) foundPattern after filter().
+  for (auto &p : utils::foundPatterns)
+  {
+    pScore += getLastScore(p, "all");
+  }
+  return (pScore / utils::foundPatterns.size());
+}
+
+void updateFragScore(Allocation &alloc)
 {
   alloc.fragScore = 1 - (static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore) * alloc.pattern.size()));
 }
 
-// uint32_t getPreservationScore(Pattern pattern, std::string topology)
-// {
-//   uint32_t preservationScore = 0;
-//   return preservationScore;
-// }
 
 #endif
