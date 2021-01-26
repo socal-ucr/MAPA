@@ -96,9 +96,10 @@ void checkCompletedJobs()
     if (waitOn(jobIt->pid) > 0)
     {
       jobIt->endTime = getTimeNow();
+      jobIt->execTime = jobIt->endTime - jobIt->startTime;
       std::cout << "Job PID " << jobIt->pid << std::endl;
-      std::cout << "Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime) << std::endl;
-      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->endTime - jobIt->startTime));
+      std::cout << "Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->execTime) << std::endl;
+      logging("Finished Job " + std::to_string(jobIt->getId()) + " at " + std::to_string(jobIt->execTime));
       for (auto &node : jobIt->schedGPUs)
       {
         busyNodes.erase(std::remove_if(busyNodes.begin(), busyNodes.end(),
@@ -155,6 +156,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
     else
     {
       job.startTime = getTimeNow();
+      job.queueTime = job.arvlTime - job.startTime;
       logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime));
       logging("Allocation found");
       logging(alloc.pattern, 1);
