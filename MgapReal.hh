@@ -140,7 +140,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
     logging("Required GPUs " + std::to_string(job.numGpus));
     if (job.numGpus > (numGpus - busyNodes.size()))
     {
-      logging("Insufficient GPUs", 1);
+      logging("Insufficient GPUs");
       break;
     }
     logging("Finding Allocation for Job " + std::to_string(job.getId()));
@@ -159,7 +159,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
       job.queueTime = job.arvlTime - job.startTime;
       logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime));
       logging("Allocation found");
-      logging(alloc.pattern, 1);
+      logging(alloc.pattern);
       job.alloc = alloc;
       for (auto &node : alloc.pattern)
       {
@@ -196,8 +196,6 @@ void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
   std::cout << "Jobfile: " << jobsFilename << std::endl;
   std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
 
-  auto startTime = getTimeNow();
-
   while (!jobList.empty() || !waitingJobs.empty() || !runningJobs.empty())
   {
     if (!runningJobs.empty())
@@ -215,8 +213,6 @@ void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
       scheduleReadyJobs(mgapPolicy);
     }
   }
-
-  auto endTime = getTimeNow();
 
   uint32_t avgLS = 0;
   double avgFS = 0;
