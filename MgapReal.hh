@@ -221,7 +221,7 @@ void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
   for (auto& job : jobFinished)
   {
     avgLS += job.alloc.lastScore;
-    avgFS += job.alloc.fragScore;
+    avgFS += job.alloc.normLastScore;
   }
   avgLS /= jobFinished.size();
   avgFS /= jobFinished.size();

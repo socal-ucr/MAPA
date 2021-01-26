@@ -74,7 +74,7 @@ struct Allocation
   Pattern pattern;
   uint32_t lastScore;
   uint32_t preserveScore;
-  double fragScore;
+  double normLastScore;
   Nodes vertices;
   Nodes antiVertices;
   EdgeList edges;
@@ -170,7 +170,7 @@ void createLogFile(std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime queueTime execTime lastScore fragScore bwSensitive numGpus schedGpus\n";
+  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus schedGpus\n";
   outFile.close();
 }
 
@@ -187,7 +187,7 @@ void logresult(JobItem job, std::string logFilename)
   str += " " + std::to_string(job.queueTime);
   str += " " + std::to_string(job.execTime);
   str += " " + std::to_string(job.alloc.lastScore);
-  str += " " + std::to_string(job.alloc.fragScore);
+  str += " " + std::to_string(job.alloc.normLastScore);
   str += " " + std::to_string(job.bwSensitive ? 1 : 0);
   str += " " + std::to_string(job.numGpus);
   str += " ";
@@ -205,7 +205,7 @@ void logresults(JobVec vec, std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime lastScore fragScore bwSensitive numGpus schedGpus\n";
+  outFile << "ID startTime endTime lastScore normLastScore bwSensitive numGpus schedGpus\n";
   for (auto &elem : vec)
   {
     std::string str;
@@ -215,7 +215,7 @@ void logresults(JobVec vec, std::string logFilename)
     str += " " + std::to_string(elem.queueTime);
     str += " " + std::to_string(elem.execTime);
     str += " " + std::to_string(elem.alloc.lastScore);
-    str += " " + std::to_string(elem.alloc.fragScore);
+    str += " " + std::to_string(elem.alloc.normLastScore);
     str += " " + std::to_string(elem.bwSensitive?1:0);
     str += " " + std::to_string(elem.numGpus);
     str += " ";

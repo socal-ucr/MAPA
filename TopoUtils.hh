@@ -199,9 +199,9 @@ uint32_t getPreservationScore(Pattern pattern)
   return pScore;
 }
 
-void updateFragScore(Allocation &alloc)
+void updateNormLastScore(Allocation &alloc)
 {
-  alloc.fragScore = 1 - (static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()])));
+  alloc.normLastScore = static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()]));
 }
 
 

@@ -5,7 +5,7 @@ if [ "$#" -ne 3 ]; then
     exit
 fi
 
-Policy="baselineV1 baselineV2 LASTgreedy LASTbw"
+Policy="baselineV1 baselineV2 LASTgreedy LASTpreserve LASTpreserveRoute LASTgreedyRoute"
 cmd=""
 prefix=""
 if [ $1 == "--sim" ]
