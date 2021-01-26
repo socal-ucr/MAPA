@@ -14,7 +14,7 @@
 extern BwMap bwmap;
 extern RouteBWmap routeBWmap;
 extern SmallGraph hwTopo;
-extern uint32_t idealLastScore;
+extern std::map<uint32_t, uint32_t> idealLastScore;
 extern Nodes busyNodes;
 
 void readJobFile(std::string fname)
@@ -78,6 +78,7 @@ void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
   using namespace Peregrine;
   size_t nthreads = 1;
   std::vector<uint32_t> testingVec;
+  utils::clear_patterns();
   const auto callback = [](auto &&handle, auto &&match) {
     handle.map(match.pattern, 1);
     utils::store_pattern(match.mapping);
@@ -85,14 +86,32 @@ void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
   auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(topo, appTopo, nthreads, callback);
 }
 
-void filterPatterns(PatternVec &patterns, Nodes busyNodes = busyNodes)
+PatternVec filterPatterns(PatternVec &patterns, Nodes busyNodes = busyNodes)
 {
+  PatternVec matchingPatterns;
+
+  // Filter patterns with busyNodes.
   for (auto &busynode : busyNodes)
   {
     patterns.erase(std::remove_if(patterns.begin(), patterns.end(),
                                   [busynode](auto &pattern) { return std::find(pattern.begin(), pattern.end(), busynode) != pattern.end(); }),
                    patterns.end());
   }
+
+  // Generate permutations of each of patterns
+  for (auto pattern : patterns)
+  {
+    sort(pattern.begin(), pattern.end());
+    do
+    {
+      matchingPatterns.emplace_back(pattern);
+    } while (next_permutation(pattern.begin(), pattern.end()));
+  }
+  // for (auto pattern : matchingPatterns)
+  // {
+  //   logging(pattern);
+  // }
+  return matchingPatterns;
 }
 
 EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = false)
@@ -106,6 +125,7 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
       elist.push_back(std::make_pair(prev, pattern[i]));
       prev = pattern[i];
     }
+    elist.push_back(std::make_pair(prev, pattern[0]));
   }
   if (topology == "all")
   {
@@ -181,7 +201,7 @@ uint32_t getPreservationScore(Pattern pattern)
 
 void updateFragScore(Allocation &alloc)
 {
-  alloc.fragScore = 1 - (static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore) * alloc.pattern.size()));
+  alloc.fragScore = 1 - (static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()])));
 }
 
 

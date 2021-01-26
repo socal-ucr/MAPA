@@ -266,4 +266,20 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
   return populateSymmetry(bwmap);
 }
 
+std::map<uint32_t, uint32_t> getIdealLastScore(std::string arch)
+{
+  std::map<uint32_t, uint32_t> idealLscore;
+  if (arch == "dgx-v")
+  {
+    idealLscore[2] = 100;
+    idealLscore[3] = 125;
+    idealLscore[4] = 175;
+    idealLscore[5] = 210;
+    idealLscore[6] = 275;
+    idealLscore[7] = 325;
+    idealLscore[8] = 400;
+  }
+  return idealLscore;
+}
+
 #endif

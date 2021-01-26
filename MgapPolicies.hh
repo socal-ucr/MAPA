@@ -138,6 +138,16 @@ Allocation LASTpreserve(PatternVec& patterns, JobItem job)
         alloc.preserveScore = currpScore;
         alloc.lastScore = getLastScore(pattern, job.topology);
       }
+      else if (alloc.preserveScore == currpScore)
+      {
+        auto currLastScore = getLastScore(pattern, job.topology);
+        if (alloc.lastScore < currLastScore)
+        {
+          alloc.pattern = pattern;
+          alloc.preserveScore = currpScore;
+          alloc.lastScore = currLastScore;
+        }
+      }
     }
   }
   if (alloc.pattern.size())

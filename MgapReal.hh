@@ -25,7 +25,7 @@ std::string logFilename;
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
 extern RouteBWmap routeBWmap;
-extern uint32_t idealLastScore;
+extern std::map<uint32_t, uint32_t> idealLastScore;
 
 int forkProcess(JobItem& job)
 {
@@ -145,10 +145,14 @@ void scheduleReadyJobs(std::string mgapPolicy)
     logging("Finding Allocation for Job " + std::to_string(job.getId()));
     findPatterns(hwTopo, job.pattern);
     // utils::print_patterns();
-    filterPatterns(utils::foundPatterns, busyNodes);
-    auto alloc = choosePattern(utils::foundPatterns, job, mgapPolicy);
-    utils::clear_patterns();
-    if (!alloc.pattern.empty())
+    auto matchingPatterns = filterPatterns(utils::foundPatterns, busyNodes);
+    auto alloc = choosePattern(matchingPatterns, job, mgapPolicy);
+
+    if (alloc.pattern.empty())
+    {
+      logging("Allocation not found");
+    }
+    else
     {
       job.startTime = getTimeNow();
       logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime));

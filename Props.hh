@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <list>
+#include <map>
 
 #include <boost/lexical_cast.hpp>
 
@@ -19,23 +20,7 @@ using Nodes = Pattern;
 SmallGraph hwTopo;
 BwMap bwmap;
 RouteBWmap routeBWmap;
-uint32_t idealLastScore;
-
-uint32_t getIdealLastScore(BwMap bwmap)
-{
-  uint32_t idealLscore = 0;
-  for (auto &outer : bwmap)
-  {
-    for (auto &inner : outer.second)
-    {
-      if (idealLscore < inner.second.bw)
-      {
-        idealLscore = inner.second.bw;
-      }
-    }
-  }
-  return idealLscore;
-}
+std::map<uint32_t, uint32_t> idealLastScore;
 
 // NOTE(Kiran): Check if this is necessary.
 uint32_t getTotalLastScore(BwMap bwmap)
@@ -59,7 +44,7 @@ struct GpuSystem
   SmallGraph topology;
   BwMap bwmap;
   RouteBWmap routeBWmap;
-  uint32_t idealLastScore;
+  std::map<uint32_t, uint32_t> idealLastScore;
   uint32_t numGpus;
   std::string name;
 
@@ -70,7 +55,7 @@ struct GpuSystem
     bwmap = bmap;
     routeBWmap = rmap;
     numGpus = num;
-    idealLastScore = getIdealLastScore(bwmap);
+    idealLastScore = getIdealLastScore(arch);
   }
 
   GpuSystem(std::string arch)
@@ -80,7 +65,7 @@ struct GpuSystem
     routeBWmap = getRouteBWmap(arch);
     bwmap = getBwMat(arch);
     numGpus = getNumGpusPerNode(arch);
-    idealLastScore = getIdealLastScore(bwmap);
+    idealLastScore = getIdealLastScore(arch);
   }
 };
 
