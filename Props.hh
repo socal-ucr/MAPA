@@ -61,7 +61,18 @@ struct GpuSystem
   GpuSystem(std::string arch)
   {
     name = arch;
-    topology = (arch == "summit") ? summitmesh() : cubemesh();
+    if ((arch == "dgx-v") || (arch == "dgx-p"))
+    {
+      topology = cubemesh();
+    }
+    else if (arch == "summit")
+    {
+      topology = summitmesh();
+    }
+    else if (arch == "torus-2d")
+    {
+      topology = torus2dMesh();
+    }
     routeBWmap = getRouteBWmap(arch);
     bwmap = getBwMat(arch);
     numGpus = getNumGpusPerNode(arch);

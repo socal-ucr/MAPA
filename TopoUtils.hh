@@ -73,6 +73,33 @@ void moveItem(Vec &destVec, Vec &sourceVec, T item)
   erase(sourceVec, item);
 }
 
+template <typename T>
+T findElemInMap(std::map<uint32_t, std::map<uint32_t, T>> &myMap, uint32_t iKey, uint32_t jKey)
+{
+  T ret{};
+  auto itA = myMap.find(iKey);
+  if (itA == myMap.end())
+  {
+    logging("iKey " + std::to_string(iKey) + " not found");
+    exit(0);
+  }
+  else
+  {
+    logging("iKey " + std::to_string(iKey) + " found");
+    auto itB = (itA->second).find(jKey);
+    if (itB == (itA->second).end())
+    {
+      logging("jKey " + std::to_string(jKey) + " not found");
+      exit(0);
+    }
+    else
+    {
+      ret = itB->second;
+    }
+  }
+  return ret;
+}
+
 void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
 {
   using namespace Peregrine;
@@ -135,7 +162,7 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
       {
         if (nvlinksOnly)
         {
-          if (!bwmap[pattern[i]][pattern[j]].isPCIe())
+          if (!(findElemInMap(bwmap, pattern[i], pattern[j])).isPCIe())
           {
             elist.push_back(std::make_pair(pattern[i], pattern[j]));
           }
@@ -158,7 +185,7 @@ uint32_t getLastScore(Pattern pattern, std::string topology, bool nvlinksOnly = 
   EdgeList elist = getEdges(pattern, topology, nvlinksOnly);
   for (auto &edge : elist)
   {
-    lastScore += (bwmap[edge.first][edge.second]).bw;
+    lastScore += (findElemInMap(bwmap, edge.first, edge.second)).bw;
   }
   return lastScore;
 }
@@ -169,10 +196,10 @@ uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
   EdgeList elist = getEdges(pattern, topology);
   for (auto &edge : elist)
   {
-    auto conn = bwmap[edge.first][edge.second];
+    auto conn = findElemInMap(bwmap, edge.first, edge.second);
     if (conn.isPCIe() && routeBWmap.size())
     {
-      lastScore += routeBWmap[edge.first][edge.second];
+      lastScore += findElemInMap(routeBWmap, edge.first, edge.second);
     }
     else
     {
