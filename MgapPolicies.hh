@@ -72,6 +72,7 @@ Allocation LASTpreserveRoute(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
   alloc.lastScore = 0;
+  alloc.preserveScore = 0;
 
   logging("Iterating through Patterns in policy");
   for (auto &pattern : patterns)
@@ -113,6 +114,7 @@ Allocation LASTpreserve(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
   alloc.lastScore = 0;
+  alloc.preserveScore = 0;
 
   logging("Iterating through Patterns in policy");
   for (auto &pattern : patterns)
