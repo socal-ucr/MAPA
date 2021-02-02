@@ -185,39 +185,6 @@ BwMap populateSymmetry(BwMap bwmap)
   return bwmap;
 }
 
-RouteBWmap getRouteBWmap(std::string sysName)
-{
-  RouteBWmap rmap;
-  if ((sysName == "dgx-v"))
-  {
-    rmap[1][6] = 50;
-    rmap[1][7] = 25;
-    rmap[1][8] = 25;
-    rmap[2][5] = 25;
-    rmap[2][7] = 25;
-    rmap[2][8] = 25;
-    rmap[3][5] = 25;
-    rmap[3][6] = 50;
-    rmap[3][8] = 25;
-    rmap[4][5] = 50;
-    rmap[4][6] = 25;
-    rmap[4][7] = 25;
-    rmap[5][2] = 25;
-    rmap[5][3] = 25;
-    rmap[5][4] = 25;
-    rmap[6][4] = 25;
-    rmap[6][3] = 50;
-    rmap[6][1] = 25;
-    rmap[7][1] = 25;
-    rmap[7][2] = 25;
-    rmap[7][4] = 25;
-    rmap[8][1] = 50;
-    rmap[8][2] = 25;
-    rmap[8][3] = 25;
-  }
-  return rmap;
-}
-
 BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
 {
   BwMap bwmap;
@@ -388,6 +355,16 @@ std::map<uint32_t, uint32_t> getIdealLastScore(std::string arch)
     idealLscore[7] = 325;
     idealLscore[8] = 400;
   }
+  if (arch == "dgx-p")
+  {
+    idealLscore[2] = 40;
+    idealLscore[3] = 60;
+    idealLscore[4] = 80;
+    idealLscore[5] = 90;
+    idealLscore[6] = 120;
+    idealLscore[7] = 130;
+    idealLscore[8] = 160;
+  }
   else if (arch == "torus-2d")
   {
     idealLscore[2] = 100;
@@ -405,6 +382,81 @@ std::map<uint32_t, uint32_t> getIdealLastScore(std::string arch)
     idealLscore[6] = 320;
   }
   return idealLscore;
+}
+
+RouteBWmap getRouteBWmap(std::string sysName)
+{
+  RouteBWmap rmap;
+  if (sysName == "dgx-v")
+  {
+    rmap[1][6] = 50;
+    rmap[1][7] = 25;
+    rmap[1][8] = 25;
+    rmap[2][5] = 25;
+    rmap[2][7] = 25;
+    rmap[2][8] = 25;
+    rmap[3][5] = 25;
+    rmap[3][6] = 50;
+    rmap[3][8] = 25;
+    rmap[4][5] = 50;
+    rmap[4][6] = 25;
+    rmap[4][7] = 25;
+    rmap[5][2] = 25;
+    rmap[5][3] = 25;
+    rmap[5][4] = 25;
+    rmap[6][4] = 25;
+    rmap[6][3] = 50;
+    rmap[6][1] = 25;
+    rmap[7][1] = 25;
+    rmap[7][2] = 25;
+    rmap[7][4] = 25;
+    rmap[8][1] = 50;
+    rmap[8][2] = 25;
+    rmap[8][3] = 25;
+  }
+  if (sysName == "dgx-p")
+  {
+    rmap[1][6] = 20;
+    rmap[1][7] = 20;
+    rmap[1][8] = 20;
+    rmap[2][5] = 20;
+    rmap[2][7] = 20;
+    rmap[2][8] = 20;
+    rmap[3][5] = 20;
+    rmap[3][6] = 20;
+    rmap[3][8] = 20;
+    rmap[4][5] = 20;
+    rmap[4][6] = 20;
+    rmap[4][7] = 20;
+    rmap[5][2] = 20;
+    rmap[5][3] = 20;
+    rmap[5][4] = 20;
+    rmap[6][4] = 20;
+    rmap[6][3] = 20;
+    rmap[6][1] = 20;
+    rmap[7][1] = 20;
+    rmap[7][2] = 20;
+    rmap[7][4] = 20;
+    rmap[8][1] = 20;
+    rmap[8][2] = 20;
+    rmap[8][3] = 20;
+  }
+  if (sysName == "torus-2d")
+  {
+    BwMap bmap = getBwMat(sysName);
+    for (auto i = 1; i <= 16; ++i)
+    {
+      for (auto j = 1; j <= 16; j++)
+      {
+        if (bmap[i][j].isPCIe())
+        {
+          // TODO(Kiran) #2 : Double Check if the assumption is correct.
+          rmap[i][j] = 25;
+        }
+      }
+    }
+  }
+  return rmap;
 }
 
 #endif

@@ -181,7 +181,7 @@ void createLogFile(std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus schedGpus\n";
+  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus nets schedGpus\n";
   outFile.close();
 }
 
@@ -201,6 +201,7 @@ void logresult(JobItem job, std::string logFilename)
   str += " " + std::to_string(job.alloc.normLastScore);
   str += " " + std::to_string(job.bwSensitive ? 1 : 0);
   str += " " + std::to_string(job.numGpus);
+  str += " " + job.taskToRun;
   str += " ";
   for (auto &node : job.schedGPUs)
   {
