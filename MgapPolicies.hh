@@ -107,8 +107,8 @@ Allocation LASTgreedyRoute(PatternVec &patterns, JobItem job)
   }
   if (alloc.pattern.size())
   {
-    updateNormLastScore(alloc);
     alloc.lastScore = getLastScoreWithRoute(alloc.pattern, job.topology);
+    updateNormLastScore(alloc);
     alloc.edges = getEdges(alloc.pattern, job.topology);
   }
   logging("Selected pattern\n");
@@ -154,8 +154,8 @@ Allocation LASTpreserveRoute(PatternVec& patterns, JobItem job)
     }
     if (alloc.pattern.size())
     {
-      updateNormLastScore(alloc);
       alloc.lastScore = getLastScoreWithRoute(alloc.pattern, job.topology);
+      updateNormLastScore(alloc);
       alloc.edges = getEdges(alloc.pattern, job.topology);
     }
   }
