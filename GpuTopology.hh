@@ -360,7 +360,7 @@ std::map<uint32_t, uint32_t> getIdealLastScore(std::string arch)
     idealLscore[2] = 40;
     idealLscore[3] = 60;
     idealLscore[4] = 80;
-    idealLscore[5] = 90;
+    idealLscore[5] = 100;
     idealLscore[6] = 120;
     idealLscore[7] = 130;
     idealLscore[8] = 160;
