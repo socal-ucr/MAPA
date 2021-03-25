@@ -74,7 +74,7 @@ void moveItem(Vec &destVec, Vec &sourceVec, T item)
 }
 
 template <typename T>
-T findElemInMap(std::map<uint32_t, std::map<uint32_t, T>> &myMap, uint32_t iKey, uint32_t jKey)
+T getConnectionInfo(std::map<uint32_t, std::map<uint32_t, T>> &myMap, uint32_t iKey, uint32_t jKey)
 {
   T ret{};
   auto itA = myMap.find(iKey);
@@ -162,7 +162,7 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
       {
         if (nvlinksOnly)
         {
-          if (!(findElemInMap(bwmap, pattern[i], pattern[j])).isPCIe())
+          if (!(getConnectionInfo(bwmap, pattern[i], pattern[j])).isPCIe())
           {
             elist.push_back(std::make_pair(pattern[i], pattern[j]));
           }
@@ -177,36 +177,6 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
   logging("Edges");
   logging(elist);
   return elist;
-}
-
-uint32_t getLastScore(Pattern pattern, std::string topology, bool nvlinksOnly = false)
-{
-  uint32_t lastScore = 0;
-  EdgeList elist = getEdges(pattern, topology, nvlinksOnly);
-  for (auto &edge : elist)
-  {
-    lastScore += (findElemInMap(bwmap, edge.first, edge.second)).bw;
-  }
-  return lastScore;
-}
-
-uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
-{
-  uint32_t lastScore = 0;
-  EdgeList elist = getEdges(pattern, topology);
-  for (auto &edge : elist)
-  {
-    auto conn = findElemInMap(bwmap, edge.first, edge.second);
-    if (conn.isPCIe() && routeBWmap.size())
-    {
-      lastScore += findElemInMap(routeBWmap, edge.first, edge.second);
-    }
-    else
-    {
-      lastScore += conn.bw;
-    }
-  }
-  return lastScore;
 }
 
 uint32_t getPreservationScore(Pattern pattern)
@@ -229,6 +199,71 @@ uint32_t getPreservationScore(Pattern pattern)
 void updateNormLastScore(Allocation &alloc)
 {
   alloc.normLastScore = static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()]));
+}
+
+// TODO(Kiran): getAllocationForPattern() deprecates this function.
+uint32_t getLastScore(Pattern pattern, std::string topology, bool nvlinksOnly = false)
+{
+  uint32_t lastScore = 0;
+  EdgeList elist = getEdges(pattern, topology, nvlinksOnly);
+  for (auto &edge : elist)
+  {
+    lastScore += (getConnectionInfo(bwmap, edge.first, edge.second)).bw;
+  }
+  return lastScore;
+}
+
+Allocation getAllocationForPattern(Pattern pattern, std::string topology,
+                                   bool nvlinksOnly = false, bool enableRoute = false)
+{
+  Allocation alloc = {};
+  alloc.pattern = pattern;
+  alloc.edges = getEdges(pattern, topology, nvlinksOnly);
+  alloc.totalNumLinks = alloc.edges.size();
+  for (auto &edge : elist)
+  {
+    auto conn = getConnectionInfo(bwmap, edge.first, edge.second);
+    if (conn.isPCIe())
+    {
+      alloc.numPCIeLinks++;
+    }
+    else{
+      alloc.numNVLinks++;
+    }
+
+    if ((conn.isPCIe()) && (enableRoute))
+    {
+      // NOTE(Kiran): RouteBWmap only tracks bw.
+      alloc.lastScore += getConnectionInfo(routeBWmap, edge.first, edge.second);
+    }
+    else
+    {
+      alloc.lastScore += conn.bw;
+    }
+  }
+  alloc.preserveScore = getPreservationScore(pattern);
+  updateNormLastScore(alloc);
+  return alloc;
+}
+
+// TODO(Kiran): getAllocationForPattern() deprecates this function.
+uint32_t getLastScoreWithRoute(Pattern pattern, std::string topology)
+{
+  uint32_t lastScore = 0;
+  EdgeList elist = getEdges(pattern, topology);
+  for (auto &edge : elist)
+  {
+    auto conn = getConnectionInfo(bwmap, edge.first, edge.second);
+    if (conn.isPCIe() && routeBWmap.size())
+    {
+      lastScore += getConnectionInfo(routeBWmap, edge.first, edge.second);
+    }
+    else
+    {
+      lastScore += conn.bw;
+    }
+  }
+  return lastScore;
 }
 
 

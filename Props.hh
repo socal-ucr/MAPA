@@ -90,6 +90,29 @@ struct Allocation
   Nodes antiVertices;
   EdgeList edges;
   EdgeList antiEdges;
+  uint32_t numPCIeLinks;
+  uint32_t numNVLinks;
+  uint32_t totalNumLinks;
+
+  double getLinkRatio()
+  {
+    return (reinterpret_cast<double>(numPCIeLinks) / reinterpret_cast<double>(totalNumLinks));
+  }
+
+  uint32_t getNumPCIeLinks()
+  {
+    return numPCIeLinks;
+  }
+
+  uint32_t getNumNVLinks()
+  {
+    return numNVLinks;
+  }
+
+  uint32_t getTotalNumLinks()
+  {
+    return totalNumLinks;
+  }
 };
 
 struct JobItem

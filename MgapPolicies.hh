@@ -14,29 +14,19 @@
 
 Allocation LASTgreedy(PatternVec& patterns, JobItem job)
 {
-  Allocation alloc;
-  alloc.lastScore = 0;
+  Allocation alloc = {};
+  logging("Iterating through Patterns in LASTgreedy policy");
 
-  logging("Iterating through Patterns in policy");
-
-  for (auto &pattern : patterns)
+  for (auto& pattern: patterns)
   {
     logging(pattern);
-    uint32_t currlastScore = getLastScore(pattern, job.topology);
-    logging("lastScore = " + std::to_string(currlastScore));
-    if (alloc.lastScore < currlastScore)
+    auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+    if (alloc.lastScore < tempAlloc.lastScore)
     {
-      alloc.pattern = pattern;
-      alloc.lastScore = currlastScore;
+      alloc = tempAlloc;
     }
   }
-  if (alloc.pattern.size())
-  {
-    updateNormLastScore(alloc);
-    alloc.edges = getEdges(alloc.pattern, job.topology);
-  }
-  logging("Selected pattern\n");
-  logging(alloc.pattern);
+
   return alloc;
 }
 
@@ -46,7 +36,7 @@ Allocation LASTpreserve(PatternVec &patterns, JobItem job)
   alloc.lastScore = 0;
   alloc.preserveScore = 0;
 
-  logging("Iterating through Patterns in policy");
+  logging("Iterating through Patterns in LASTpreserve policy");
 
   if (job.bwSensitive)
   {
@@ -54,36 +44,27 @@ Allocation LASTpreserve(PatternVec &patterns, JobItem job)
   }
   else
   {
+    Allocation alloc = {};
+    logging("Iterating through Patterns in LASTgreedy policy");
+
     for (auto &pattern : patterns)
     {
       logging(pattern);
-      uint32_t currpScore = getPreservationScore(pattern);
-      logging("preserveScore = " + std::to_string(currpScore));
-      if (alloc.preserveScore < currpScore)
+      auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+      if (alloc.preserveScore < tempAlloc.preserveScore)
       {
-        alloc.pattern = pattern;
-        alloc.preserveScore = currpScore;
-        alloc.lastScore = getLastScore(pattern, job.topology);
+        alloc = tempAlloc;
       }
-      else if (alloc.preserveScore == currpScore)
+      else if (alloc.preserveScore == tempAlloc.preserveScore)
       {
-        auto currLastScore = getLastScore(pattern, job.topology);
-        if (alloc.lastScore < currLastScore)
+        if (alloc.lastScore < tempAlloc.lastScore)
         {
-          alloc.pattern = pattern;
-          alloc.preserveScore = currpScore;
-          alloc.lastScore = currLastScore;
+          alloc = tempAlloc;
         }
       }
     }
-    if (alloc.pattern.size())
-    {
-      updateNormLastScore(alloc);
-      alloc.edges = getEdges(alloc.pattern, job.topology);
-    }
   }
-  logging("Printing selected pattern\n");
-  logging(alloc.pattern);
+
   return alloc;
 }
 
