@@ -17,13 +17,20 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   Allocation alloc = {};
   logging("Iterating through Patterns in LASTgreedy policy");
 
-  for (auto& pattern: patterns)
+  if ((job.numGpus == 1) && pattern.size())
   {
-    logging(pattern);
-    auto tempAlloc = getAllocationForPattern(pattern, job.topology);
-    if (alloc.lastScore < tempAlloc.lastScore)
+    getAllocationForPattern(pattern[0], job.topology);
+  }
+  else
+  {
+    for (auto &pattern : patterns)
     {
-      alloc = tempAlloc;
+      logging(pattern);
+      auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+      if (alloc.lastScore < tempAlloc.lastScore)
+      {
+        alloc = tempAlloc;
+      }
     }
   }
 

@@ -95,7 +95,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
       break;
     }
     logging("Finding Allocation for Job " + std::to_string(job.getId()));
-    findPatterns(hwTopo, job.pattern);
+    findPatterns(hwTopo, job.numGpus, job.pattern);
     // utils::print_patterns();
     auto matchingPatterns = filterPatterns(utils::foundPatterns, busyNodes);
     auto alloc = choosePattern(matchingPatterns, job, mgapPolicy);

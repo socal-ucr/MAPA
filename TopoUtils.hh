@@ -100,17 +100,27 @@ T getConnectionInfo(std::map<uint32_t, std::map<uint32_t, T>> &myMap, uint32_t i
   return ret;
 }
 
-void findPatterns(SmallGraph topo, std::vector<SmallGraph> appTopo)
+void findPatterns(SmallGraph hwTopo, uint32_t numGpus, std::vector<SmallGraph> appTopo)
 {
   using namespace Peregrine;
   size_t nthreads = 1;
   std::vector<uint32_t> testingVec;
   utils::clear_patterns();
-  const auto callback = [](auto &&handle, auto &&match) {
-    handle.map(match.pattern, 1);
-    utils::store_pattern(match.mapping);
-  };
-  auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(topo, appTopo, nthreads, callback);
+  if (numGpus == 1)
+  {
+    for (auto node : hwTopo.v_list())
+    {
+      utils::store_pattern(std::vector<uint32_t>{node});
+    }
+  }
+  else
+  {
+    const auto callback = [](auto &&handle, auto &&match) {
+      handle.map(match.pattern, 1);
+      utils::store_pattern(match.mapping);
+    };
+    auto results = match<Pattern, uint64_t, ON_THE_FLY, UNSTOPPABLE>(hwTopo, appTopo, nthreads, callback);
+  }
 }
 
 PatternVec filterPatterns(PatternVec &patterns, Nodes busyNodes = busyNodes)
@@ -218,31 +228,35 @@ Allocation getAllocationForPattern(Pattern pattern, std::string topology,
 {
   Allocation alloc = {};
   alloc.pattern = pattern;
-  alloc.edges = getEdges(pattern, topology, nvlinksOnly);
-  alloc.totalNumLinks = alloc.edges.size();
-  for (auto &edge : elist)
+  if (alloc.pattern.size() > 1)
   {
-    auto conn = getConnectionInfo(bwmap, edge.first, edge.second);
-    if (conn.isPCIe())
+    alloc.edges = getEdges(pattern, topology, nvlinksOnly);
+    alloc.totalNumLinks = alloc.edges.size();
+    for (auto &edge : elist)
     {
-      alloc.numPCIeLinks++;
-    }
-    else{
-      alloc.numNVLinks++;
-    }
+      auto conn = getConnectionInfo(bwmap, edge.first, edge.second);
+      if (conn.isPCIe())
+      {
+        alloc.numPCIeLinks++;
+      }
+      else{
+        alloc.numNVLinks++;
+      }
 
-    if ((conn.isPCIe()) && (enableRoute))
-    {
-      // NOTE(Kiran): RouteBWmap only tracks bw.
-      alloc.lastScore += getConnectionInfo(routeBWmap, edge.first, edge.second);
+      if ((conn.isPCIe()) && (enableRoute))
+      {
+        // NOTE(Kiran): RouteBWmap only tracks bw.
+        alloc.lastScore += getConnectionInfo(routeBWmap, edge.first, edge.second);
+      }
+      else
+      {
+        alloc.lastScore += conn.bw;
+      }
     }
-    else
-    {
-      alloc.lastScore += conn.bw;
-    }
+    updateNormLastScore(alloc);
   }
   alloc.preserveScore = getPreservationScore(pattern);
-  updateNormLastScore(alloc);
+
   return alloc;
 }
 
