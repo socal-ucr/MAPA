@@ -96,7 +96,14 @@ struct Allocation
 
   double getLinkRatio()
   {
-    return (static_cast<double>(numPCIeLinks) / static_cast<double>(totalNumLinks));
+    if (totalNumLinks == 0)
+    {
+      return 0;
+    }
+    else
+    {
+      return (static_cast<double>(numPCIeLinks) / static_cast<double>(totalNumLinks));
+    }
   }
 
   uint32_t getNumPCIeLinks()
@@ -204,7 +211,7 @@ void createLogFile(std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus nets schedGpus\n";
+  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus linkRatio nets schedGpus\n";
   outFile.close();
 }
 
@@ -224,6 +231,7 @@ void logresult(JobItem job, std::string logFilename)
   str += " " + std::to_string(job.alloc.normLastScore);
   str += " " + std::to_string(job.bwSensitive ? 1 : 0);
   str += " " + std::to_string(job.numGpus);
+  str += " " + std::to_string(job.alloc.getLinkRatio());
   str += " " + job.taskToRun;
   str += " ";
   for (auto &node : job.schedGPUs)
@@ -232,35 +240,6 @@ void logresult(JobItem job, std::string logFilename)
   }
   str += "\n";
   outFile << str;
-  outFile.close();
-}
-
-//TODO(Kiran): logresult() makes this function obsolete. Purge it safely.
-void logresults(JobVec vec, std::string logFilename)
-{
-  std::ofstream outFile;
-  outFile.open(logFilename);
-  outFile << "ID startTime endTime lastScore normLastScore bwSensitive numGpus schedGpus\n";
-  for (auto &elem : vec)
-  {
-    std::string str;
-    str = std::to_string(elem.id);
-    str += " " + std::to_string(elem.startTime);
-    str += " " + std::to_string(elem.endTime);
-    str += " " + std::to_string(elem.queueTime);
-    str += " " + std::to_string(elem.execTime);
-    str += " " + std::to_string(elem.alloc.lastScore);
-    str += " " + std::to_string(elem.alloc.normLastScore);
-    str += " " + std::to_string(elem.bwSensitive?1:0);
-    str += " " + std::to_string(elem.numGpus);
-    str += " ";
-    for (auto &node : elem.schedGPUs)
-    {
-      str += std::to_string(node) + ",";
-    }
-    str += "\n";
-    outFile << str;
-  }
   outFile.close();
 }
 

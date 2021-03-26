@@ -18,7 +18,7 @@ JobVec jobFinished;  // Finished jobs.
 std::string logFilename;
 
 long int cycles = 0;
-int numGpus;
+int totalGpus;
 
 extern SmallGraph hwTopo;
 extern BwMap bwmap;
@@ -64,32 +64,39 @@ void checkCompletedJobs()
 
 void populatewaitingJobs()
 {
-  for (auto it = jobList.begin(); it != jobList.end();)
+  // for (auto it = jobList.begin(); it != jobList.end();)
+  // {
+  //   if (it->arvlTime <= cycles)
+  //   {
+  //     waitingJobs.emplace_back(*it);
+  //     erase(jobList, *it);
+  //     it = jobList.begin();
+  //   }
+  //   else if (it->arvlTime > cycles)
+  //   {
+  //     break;
+  //   }
+  //   else
+  //   {
+  //     ++it;
+  //   }
+  // }
+  for (auto job : jobList)
   {
-    if (it->arvlTime <= cycles)
-    {
-      waitingJobs.emplace_back(*it);
-      erase(jobList, *it);
-      it = jobList.begin();
-    }
-    else if (it->arvlTime > cycles)
-    {
-      break;
-    }
-    else
-    {
-      ++it;
-    }
+    waitingJobs.emplace_back(job);
   }
+  jobList.clear();
+
+  return;
 }
 
 void scheduleReadyJobs(std::string mgapPolicy)
 {
   for (auto &job : waitingJobs)
   {
-    logging("Available GPUs " + std::to_string(numGpus - busyNodes.size()));
-    logging("Required GPUs " + std::to_string(job.numGpus));
-    if (job.numGpus > (numGpus - busyNodes.size()))
+    // logging("Available GPUs " + std::to_string(totalGpus - busyNodes.size()));
+    // logging("Required GPUs " + std::to_string(job.numGpus));
+    if (job.numGpus > (totalGpus - busyNodes.size()))
     {
       logging("Insufficient GPUs");
       break;
@@ -103,12 +110,13 @@ void scheduleReadyJobs(std::string mgapPolicy)
     if (alloc.pattern.empty())
     {
       logging("Allocation not found");
+      break; // Ensure the first job in the queue blocks until scheduled.
     }
     else
     {
       logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(cycles));
       job.startTime = cycles;
-      job.queueTime = cycles - job.arvlTime;
+      job.queueTime = job.arvlTime - cycles;
       logging("Allocation found");
       logging(alloc.pattern);
       job.alloc = alloc;
@@ -127,7 +135,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
 
 void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 {
-  numGpus = gpuSys.numGpus;
+  totalGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
   routeBWmap = gpuSys.routeBWmap;
   hwTopo = gpuSys.topology;

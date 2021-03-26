@@ -80,16 +80,16 @@ T getConnectionInfo(std::map<uint32_t, std::map<uint32_t, T>> &myMap, uint32_t i
   auto itA = myMap.find(iKey);
   if (itA == myMap.end())
   {
-    logging("iKey " + std::to_string(iKey) + " not found");
+    // logging("iKey " + std::to_string(iKey) + " not found");
     exit(0);
   }
   else
   {
-    logging("iKey " + std::to_string(iKey) + " found");
+    // logging("iKey " + std::to_string(iKey) + " found");
     auto itB = (itA->second).find(jKey);
     if (itB == (itA->second).end())
     {
-      logging("jKey " + std::to_string(jKey) + " not found");
+      // logging("jKey " + std::to_string(jKey) + " not found");
       exit(0);
     }
     else
@@ -184,14 +184,21 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
       }
     }
   }
-  logging("Edges");
-  logging(elist);
+  // logging("Edges");
+  // logging(elist);
   return elist;
 }
 
 void updateNormLastScore(Allocation &alloc)
 {
-  alloc.normLastScore = static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()]));
+  if (alloc.totalNumLinks == 0)
+  {
+    alloc.normLastScore = 1;
+  }
+  else
+  {
+    alloc.normLastScore = static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()]));
+  }
 }
 
 // TODO(Kiran): getAllocationForPattern() deprecates this function.
@@ -216,7 +223,7 @@ uint32_t getPreservationScore(Pattern pattern)
 
   if (remainingNodes.size())
   {
-    logging(remainingNodes);
+    // logging(remainingNodes);
     pScore = getLastScore(remainingNodes, "all", true);
   }
 

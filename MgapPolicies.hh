@@ -17,7 +17,7 @@ Allocation LASTgreedyMin(PatternVec& patterns, JobItem job)
   Allocation alloc = {};
   for (auto &pattern : patterns)
   {
-    logging(pattern);
+    // logging(pattern);
     auto tempAlloc = getAllocationForPattern(pattern, job.topology);
     if (alloc.preserveScore < tempAlloc.preserveScore)
     {
@@ -39,7 +39,7 @@ Allocation LASTgreedyMax(PatternVec& patterns, JobItem job)
   Allocation alloc = {};
   for (auto &pattern : patterns)
   {
-    logging(pattern);
+    // logging(pattern);
     auto tempAlloc = getAllocationForPattern(pattern, job.topology);
     if (alloc.lastScore < tempAlloc.lastScore)
     {
@@ -56,11 +56,11 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
 
   if ((job.numGpus == 1) && patterns.size())
   {
-    getAllocationForPattern(patterns[0], job.topology);
+    alloc = getAllocationForPattern(patterns[0], job.topology);
   }
   else
   {
-    LASTgreedyMax(patterns, job);
+    alloc = LASTgreedyMax(patterns, job);
   }
 
   return alloc;
@@ -74,7 +74,7 @@ Allocation LASTpreserve(PatternVec &patterns, JobItem job)
 
   if ((job.bwSensitive) && (job.numGpus > 1))
   {
-    alloc = LASTgreedy(patterns, job);
+    alloc = LASTgreedyMax(patterns, job);
   }
   else
   {
