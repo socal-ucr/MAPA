@@ -12,6 +12,43 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
+Allocation LASTgreedyMin(PatternVec& patterns, JobItem job)
+{
+  Allocation alloc = {};
+  for (auto &pattern : patterns)
+  {
+    logging(pattern);
+    auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+    if (alloc.preserveScore < tempAlloc.preserveScore)
+    {
+      alloc = tempAlloc;
+    }
+    else if (alloc.preserveScore == tempAlloc.preserveScore)
+    {
+      if (alloc.lastScore < tempAlloc.lastScore)
+      {
+        alloc = tempAlloc;
+      }
+    }
+  }
+  return alloc;
+}
+
+Allocation LASTgreedyMax(PatternVec& patterns, JobItem job)
+{
+  Allocation alloc = {};
+  for (auto &pattern : patterns)
+  {
+    logging(pattern);
+    auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+    if (alloc.lastScore < tempAlloc.lastScore)
+    {
+      alloc = tempAlloc;
+    }
+  }
+  return alloc;
+}
+
 Allocation LASTgreedy(PatternVec& patterns, JobItem job)
 {
   Allocation alloc = {};
@@ -23,15 +60,7 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   }
   else
   {
-    for (auto &pattern : patterns)
-    {
-      logging(pattern);
-      auto tempAlloc = getAllocationForPattern(pattern, job.topology);
-      if (alloc.lastScore < tempAlloc.lastScore)
-      {
-        alloc = tempAlloc;
-      }
-    }
+    LASTgreedyMax(patterns, job);
   }
 
   return alloc;
@@ -39,37 +68,39 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
 
 Allocation LASTpreserve(PatternVec &patterns, JobItem job)
 {
-  Allocation alloc;
-  alloc.lastScore = 0;
-  alloc.preserveScore = 0;
+  Allocation alloc = {};
 
   logging("Iterating through Patterns in LASTpreserve policy");
 
-  if (job.bwSensitive)
+  if ((job.bwSensitive) && (job.numGpus > 1))
   {
     alloc = LASTgreedy(patterns, job);
   }
   else
   {
-    Allocation alloc = {};
-    logging("Iterating through Patterns in LASTgreedy policy");
+    alloc = LASTgreedyMin(patterns, job);
+  }
 
-    for (auto &pattern : patterns)
+  return alloc;
+}
+
+Allocation LASTminScore(PatternVec &patterns, JobItem job)
+{
+  Allocation alloc = {};
+
+  logging("Iterating through Patterns in LASTpreserve policy");
+
+  if ((job.bwSensitive) && (job.numGpus > 1))
+  {
+    alloc = LASTgreedy(patterns, job);
+    if (alloc.normLastScore != 1)
     {
-      logging(pattern);
-      auto tempAlloc = getAllocationForPattern(pattern, job.topology);
-      if (alloc.preserveScore < tempAlloc.preserveScore)
-      {
-        alloc = tempAlloc;
-      }
-      else if (alloc.preserveScore == tempAlloc.preserveScore)
-      {
-        if (alloc.lastScore < tempAlloc.lastScore)
-        {
-          alloc = tempAlloc;
-        }
-      }
+      return Allocation{};
     }
+  }
+  else
+  {
+    alloc = LASTgreedyMin(patterns, job);
   }
 
   return alloc;
@@ -225,6 +256,7 @@ Allocation baselineV2(PatternVec& patterns, JobItem job)
 
 std::map<std::string, std::function<Allocation(PatternVec &, JobItem)>> policyMap =
     {{"LASTgreedy", [](PatternVec &patterns, JobItem job) { return LASTgreedy(patterns, job); }},
+     {"LASTminScore", [](PatternVec &patterns, JobItem job) { return LASTminScore(patterns, job); }},
      {"LASTgreedyRoute", [](PatternVec &patterns, JobItem job) { return LASTgreedyRoute(patterns, job); }},
      {"LASTpreserve", [](PatternVec &patterns, JobItem job) { return LASTpreserve(patterns, job); }},
      {"LASTpreserveRoute", [](PatternVec &patterns, JobItem job) { return LASTpreserveRoute(patterns, job); }},
