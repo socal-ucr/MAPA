@@ -189,23 +189,6 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
   return elist;
 }
 
-uint32_t getPreservationScore(Pattern pattern)
-{
-  uint32_t pScore = 0;
-
-  auto remainingNodes = hwTopo.v_list();
-  erase(remainingNodes, busyNodes);
-  erase(remainingNodes, pattern);
-
-  if (remainingNodes.size())
-  {
-    logging(remainingNodes);
-    pScore = getLastScore(remainingNodes, "all", true);
-  }
-
-  return pScore;
-}
-
 void updateNormLastScore(Allocation &alloc)
 {
   alloc.normLastScore = static_cast<double>(alloc.lastScore) / (static_cast<double>(idealLastScore[alloc.pattern.size()]));
@@ -223,6 +206,23 @@ uint32_t getLastScore(Pattern pattern, std::string topology, bool nvlinksOnly = 
   return lastScore;
 }
 
+uint32_t getPreservationScore(Pattern pattern)
+{
+  uint32_t pScore = 0;
+
+  auto remainingNodes = hwTopo.v_list();
+  erase(remainingNodes, busyNodes);
+  erase(remainingNodes, pattern);
+
+  if (remainingNodes.size())
+  {
+    logging(remainingNodes);
+    pScore = getLastScore(remainingNodes, "all", true);
+  }
+
+  return pScore;
+}
+
 Allocation getAllocationForPattern(Pattern pattern, std::string topology,
                                    bool nvlinksOnly = false, bool enableRoute = false)
 {
@@ -232,7 +232,7 @@ Allocation getAllocationForPattern(Pattern pattern, std::string topology,
   {
     alloc.edges = getEdges(pattern, topology, nvlinksOnly);
     alloc.totalNumLinks = alloc.edges.size();
-    for (auto &edge : elist)
+    for (auto &edge : alloc.edges)
     {
       auto conn = getConnectionInfo(bwmap, edge.first, edge.second);
       if (conn.isPCIe())

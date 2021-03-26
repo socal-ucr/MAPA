@@ -96,7 +96,7 @@ struct Allocation
 
   double getLinkRatio()
   {
-    return (reinterpret_cast<double>(numPCIeLinks) / reinterpret_cast<double>(totalNumLinks));
+    return (static_cast<double>(numPCIeLinks) / static_cast<double>(totalNumLinks));
   }
 
   uint32_t getNumPCIeLinks()

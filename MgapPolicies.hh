@@ -17,9 +17,9 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   Allocation alloc = {};
   logging("Iterating through Patterns in LASTgreedy policy");
 
-  if ((job.numGpus == 1) && pattern.size())
+  if ((job.numGpus == 1) && patterns.size())
   {
-    getAllocationForPattern(pattern[0], job.topology);
+    getAllocationForPattern(patterns[0], job.topology);
   }
   else
   {
