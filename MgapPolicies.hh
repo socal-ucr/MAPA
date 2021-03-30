@@ -186,27 +186,28 @@ Allocation LASTpreserveRoute(PatternVec& patterns, JobItem job)
 Allocation baselineV1(PatternVec& patterns, JobItem job)
 {
   // Pass any available alloc based on smallest/available ID.
-  Allocation alloc;
+  Allocation alloc = {};
   alloc.lastScore = 0;
 
-  if (patterns.size())
+  if ((job.numGpus == 1) && patterns.size())
   {
-    auto pattern = patterns[0];
-    logging(pattern);
-    do
+    alloc = getAllocationForPattern(patterns[0], job.topology);
+  }
+  else
+  {
+    if (patterns.size())
     {
-      auto currLscore = getLastScore(pattern, job.topology);
-      if (alloc.lastScore < currLscore)
+      auto pattern = patterns[0];
+      logging(pattern);
+      do
       {
-        alloc.pattern = pattern;
-        alloc.lastScore = currLscore;
-      }
-    } while (next_permutation(pattern.begin(), pattern.end()));
-
-    updateNormLastScore(alloc);
-    alloc.edges = getEdges(alloc.pattern, job.topology);
-    logging("Printing selected pattern\n");
-    logging(alloc.pattern);
+        auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+        if (alloc.lastScore < tempAlloc.lastScore)
+        {
+          alloc = tempAlloc;
+        }
+      } while (next_permutation(pattern.begin(), pattern.end()));
+    }
   }
 
   return alloc;
@@ -215,43 +216,45 @@ Allocation baselineV1(PatternVec& patterns, JobItem job)
 Allocation baselineV2(PatternVec& patterns, JobItem job)
 {
   // Pass an alloc in the same PCIe root complex, if none fallback to baselineV1.
-  if (patterns.size())
+  Allocation alloc = {};
+  if ((job.numGpus == 1) && patterns.size())
   {
-    if (job.numGpus < 5)
+    alloc = getAllocationForPattern(patterns[0], job.topology);
+  }
+  else
+  {
+    if (patterns.size())
     {
-      for (auto &pattern : patterns)
+      if (job.numGpus < 5)
       {
-        logging(pattern);
-        for (auto node : pattern)
+        for (auto &pattern : patterns)
         {
-          if (((pattern[0] < 5) && (node > 4)) || ((pattern[0] > 4) && (node < 5)))
+          logging(pattern);
+          for (auto node : pattern)
           {
-            break;
-          }
-          else
-          {
-            if (node != pattern.back())
+            if (((pattern[0] < 5) && (node > 4)) || ((pattern[0] > 4) && (node < 5)))
             {
-              continue;
+              break;
             }
             else
             {
-              Allocation alloc;
-              alloc.pattern = pattern;
-              alloc.lastScore = getLastScore(pattern, job.topology);
-              updateNormLastScore(alloc);
-              alloc.edges = getEdges(alloc.pattern, job.topology);
-              logging("Printing selected pattern\n");
-              logging(alloc.pattern);
-              return alloc;
+              if (node != pattern.back())
+              {
+                continue;
+              }
+              else
+              {
+                alloc = getAllocationForPattern(pattern, job.topology);
+                return alloc;
+              }
             }
           }
         }
       }
+      return baselineV1(patterns, job);
     }
-    return baselineV1(patterns, job);
   }
-  return Allocation {};
+  return alloc;
 }
 
 std::map<std::string, std::function<Allocation(PatternVec &, JobItem)>> policyMap =

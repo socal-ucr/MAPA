@@ -83,6 +83,7 @@ void populatewaitingJobs()
   // }
   for (auto job : jobList)
   {
+    job.arvlTime = 0; // Remove this later on.
     waitingJobs.emplace_back(job);
   }
   jobList.clear();
@@ -96,11 +97,19 @@ void scheduleReadyJobs(std::string mgapPolicy)
   {
     // logging("Available GPUs " + std::to_string(totalGpus - busyNodes.size()));
     // logging("Required GPUs " + std::to_string(job.numGpus));
+
+    // TODO(Kiran): arvlTime set will be removed in the future. This is done to test the queueTime with stall policy.
+    if (job.arvlTime == 0)
+    {
+      job.arvlTime = cycles;
+    }
+
     if (job.numGpus > (totalGpus - busyNodes.size()))
     {
       logging("Insufficient GPUs");
       break;
     }
+
     logging("Finding Allocation for Job " + std::to_string(job.getId()));
     findPatterns(hwTopo, job.numGpus, job.pattern);
     // utils::print_patterns();
@@ -116,7 +125,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
     {
       logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(cycles));
       job.startTime = cycles;
-      job.queueTime = job.arvlTime - cycles;
+      job.queueTime = job.arvlTime - job.startTime;
       logging("Allocation found");
       logging(alloc.pattern);
       job.alloc = alloc;
@@ -126,7 +135,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
         busyNodes.push_back(node);
       }
       moveItem(runningJobs, waitingJobs, job);
-      break;
+      // break; // Removing break will try to schedule the next available job.
     }
   }
 
