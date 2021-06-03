@@ -124,7 +124,8 @@ void populatewaitingJobs()
   // TODO: We are not considering arvlTime in this implementation.
   for (auto job : jobList)
   {
-    job.arvlTime = getTimeNow();
+    // job.arvlTime = getTimeNow();
+    job.arvlTime = 0;
     waitingJobs.emplace_back(job);
   }
   jobList.clear();
@@ -136,6 +137,11 @@ void scheduleReadyJobs(std::string mgapPolicy)
 {
   for (auto &job : waitingJobs)
   {
+    if (job.arvlTime == 0)
+    {
+      job.arvlTime = getTimeNow();
+    }
+
     logging("Available GPUs " + std::to_string(totalGpus - busyNodes.size()));
     logging("Required GPUs " + std::to_string(job.numGpus));
     if (job.numGpus > (totalGpus - busyNodes.size()))
@@ -157,7 +163,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
     else
     {
       job.startTime = getTimeNow();
-      job.queueTime = job.startTime - job.arvlTime;
+      job.queueTime = job.arvlTime - job.startTime;
       logging("Scheduled Job " + std::to_string(job.getId()) + "at " + std::to_string(job.startTime - job.arvlTime));
       logging("Allocation found");
       logging(alloc.pattern);

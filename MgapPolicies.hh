@@ -12,7 +12,7 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
-Allocation LASTgreedyMin(PatternVec& patterns, JobItem job)
+Allocation preserveScoreMax(PatternVec& patterns, JobItem job)
 {
   Allocation alloc = {};
   for (auto &pattern : patterns)
@@ -29,6 +29,21 @@ Allocation LASTgreedyMin(PatternVec& patterns, JobItem job)
       {
         alloc = tempAlloc;
       }
+    }
+  }
+  return alloc;
+}
+
+Allocation predictedBWgreedyMax(PatternVec &patterns, JobItem job)
+{
+  Allocation alloc = {};
+  for (auto &pattern : patterns)
+  {
+    // logging(pattern);
+    auto tempAlloc = getAllocationForPattern(pattern, job.topology);
+    if (alloc.getPredictedBW() < tempAlloc.getPredictedBW())
+    {
+      alloc = tempAlloc;
     }
   }
   return alloc;
@@ -74,11 +89,11 @@ Allocation LASTpreserve(PatternVec &patterns, JobItem job)
 
   if ((job.bwSensitive) && (job.numGpus > 1))
   {
-    alloc = LASTgreedyMax(patterns, job);
+    alloc = predictedBWgreedyMax(patterns, job);
   }
   else
   {
-    alloc = LASTgreedyMin(patterns, job);
+    alloc = preserveScoreMax(patterns, job);
   }
 
   return alloc;
@@ -92,15 +107,15 @@ Allocation LASTminScore(PatternVec &patterns, JobItem job)
 
   if ((job.bwSensitive) && (job.numGpus > 1))
   {
-    alloc = LASTgreedy(patterns, job);
-    if (alloc.normLastScore != 1)
+    alloc = predictedBWgreedyMax(patterns, job);
+    if ((alloc.normLastScore != 1) && (job.numGpus > 1))
     {
       return Allocation{};
     }
   }
   else
   {
-    alloc = LASTgreedyMin(patterns, job);
+    alloc = preserveScoreMax(patterns, job);
   }
 
   return alloc;

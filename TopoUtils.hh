@@ -191,7 +191,7 @@ EdgeList getEdges(Pattern pattern, std::string topology, bool nvlinksOnly = fals
 
 void updateNormLastScore(Allocation &alloc)
 {
-  if (alloc.totalNumLinks == 0)
+  if (alloc.getTotalNumLinks() == 0)
   {
     alloc.normLastScore = 1;
   }
@@ -238,7 +238,6 @@ Allocation getAllocationForPattern(Pattern pattern, std::string topology,
   if (alloc.pattern.size() > 1)
   {
     alloc.edges = getEdges(pattern, topology, nvlinksOnly);
-    alloc.totalNumLinks = alloc.edges.size();
     for (auto &edge : alloc.edges)
     {
       auto conn = getConnectionInfo(bwmap, edge.first, edge.second);
@@ -246,8 +245,17 @@ Allocation getAllocationForPattern(Pattern pattern, std::string topology,
       {
         alloc.numPCIeLinks++;
       }
-      else{
-        alloc.numNVLinks++;
+      else
+      {
+        auto link = conn.getLinkType();
+        if (link == BW::LinkType::SingleNVLink)
+        {
+          alloc.numSingleNVLinks++;
+        }
+        else
+        {
+          alloc.numDoubleNVLinks++;
+        }
       }
 
       if ((conn.isPCIe()) && (enableRoute))

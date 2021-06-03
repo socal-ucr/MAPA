@@ -73,6 +73,10 @@ struct GpuSystem
     {
       topology = torus2dMesh();
     }
+    else if (arch == "mesh")
+    {
+      topology = cube16Mesh();
+    }
     routeBWmap = getRouteBWmap(arch);
     bwmap = getBwMat(arch);
     numGpus = getNumGpusPerNode(arch);
@@ -86,23 +90,35 @@ struct Allocation
   uint32_t lastScore;
   uint32_t preserveScore;
   double normLastScore;
+  // double predictedBW;
   Nodes vertices;
   Nodes antiVertices;
   EdgeList edges;
   EdgeList antiEdges;
   uint32_t numPCIeLinks;
-  uint32_t numNVLinks;
-  uint32_t totalNumLinks;
+  uint32_t numSingleNVLinks;
+  uint32_t numDoubleNVLinks;
+
+ private:
+  uint32_t totalNumLinks = numPCIeLinks + numSingleNVLinks + numDoubleNVLinks;
+  uint32_t numNVLinks = numSingleNVLinks + numDoubleNVLinks;
+
+public:
+  // TODO(kiran): Is this necessary?
+  uint32_t getTotalNumLinks()
+  {
+    return(numPCIeLinks + numSingleNVLinks + numDoubleNVLinks);
+  }
 
   double getLinkRatio()
   {
-    if (totalNumLinks == 0)
+    if (getTotalNumLinks() == 0)
     {
       return 0;
     }
     else
     {
-      return (static_cast<double>(numPCIeLinks) / static_cast<double>(totalNumLinks));
+      return (static_cast<double>(numPCIeLinks) / static_cast<double>(getTotalNumLinks()));
     }
   }
 
@@ -116,9 +132,19 @@ struct Allocation
     return numNVLinks;
   }
 
-  uint32_t getTotalNumLinks()
+  double getPredictedBW()
   {
-    return totalNumLinks;
+    double x1 = static_cast<double>(numDoubleNVLinks);
+    double x2 = static_cast<double>(numSingleNVLinks);
+    double x3 = static_cast<double>(numPCIeLinks);
+    double linear = 16.39670455 * x1 + 4.536821878 * x2 + 1.55623404 * x3;
+    double inverseLinear = (-20.69484581) * 1 / (x1 + 1) + (-9.467461958) * 1 / (x2 + 1) + 7.615106783 * 1 / (x3 + 1);
+    double pairwise = (-7.973335727) * x1 * x2 + 12.73323772 * x2 * x3 + (-4.195655221) * x1 * x3;
+    double inversePairwise = (-8.413419363) * 1 / (x1 * x2 + 1) + 62.85125807 * 1 / (x2 * x3 + 1) + 27.41832588 * 1 / (x1 * x3 + 1);
+    double triplet = (-5.114108079) * x1 * x2 * x3;
+    double inverseTriplet = (-46.97390071) * 1 / ( x1 * x2 * x3 + 1);
+
+    return (linear + inverseLinear + pairwise + inversePairwise + triplet + inverseTriplet);
   }
 };
 
@@ -211,7 +237,7 @@ void createLogFile(std::string logFilename)
 {
   std::ofstream outFile;
   outFile.open(logFilename);
-  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus linkRatio nets schedGpus\n";
+  outFile << "ID startTime endTime queueTime execTime lastScore normLastScore bwSensitive numGpus linkRatio predictedBW nets schedGpus\n";
   outFile.close();
 }
 
@@ -232,6 +258,7 @@ void logresult(JobItem job, std::string logFilename)
   str += " " + std::to_string(job.bwSensitive ? 1 : 0);
   str += " " + std::to_string(job.numGpus);
   str += " " + std::to_string(job.alloc.getLinkRatio());
+  str += " " + std::to_string(job.alloc.getPredictedBW());
   str += " " + job.taskToRun;
   str += " ";
   for (auto &node : job.schedGPUs)
