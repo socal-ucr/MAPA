@@ -2,8 +2,8 @@
 tags
 jobs.txt
 bin/
-mgapSim
-mgapReal
+MapaSim
+MapaReal
 *.csv
 *.pdf
 *.txt
