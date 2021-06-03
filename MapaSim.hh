@@ -1,12 +1,12 @@
-#ifndef MGAPSIM_H
-#define MGAPSIM_H
+#ifndef MAPASIM_H
+#define MAPASIM_H
 
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <list>
 
-#include "Mgap.hh"
+#include "Mapa.hh"
 
 Nodes busyNodes;
 JobVec jobList;
@@ -91,7 +91,7 @@ void populatewaitingJobs()
   return;
 }
 
-void scheduleReadyJobs(std::string mgapPolicy)
+void scheduleReadyJobs(std::string mapaPolicy)
 {
   for (auto &job : waitingJobs)
   {
@@ -114,7 +114,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
     findPatterns(hwTopo, job.numGpus, job.pattern);
     // utils::print_patterns();
     auto matchingPatterns = filterPatterns(utils::foundPatterns, busyNodes);
-    auto alloc = choosePattern(matchingPatterns, job, mgapPolicy);
+    auto alloc = choosePattern(matchingPatterns, job, mapaPolicy);
 
     if (alloc.pattern.empty())
     {
@@ -142,7 +142,7 @@ void scheduleReadyJobs(std::string mgapPolicy)
   return;
 }
 
-void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
+void run(std::string jobsFilename, GpuSystem gpuSys, std::string mapaPolicy)
 {
   totalGpus = gpuSys.numGpus;
   bwmap = gpuSys.bwmap;
@@ -152,13 +152,13 @@ void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 
   readJobFile(jobsFilename);
 
-  logFilename = jobsFilename + gpuSys.name + mgapPolicy + "Log.csv";
+  logFilename = jobsFilename + gpuSys.name + mapaPolicy + "Log.csv";
 
   createLogFile(logFilename);
 
   std::cout << "Starting simulation" << std::endl << std::endl;
   std::cout << "Jobfile: " << jobsFilename << std::endl;
-  std::cout << "Using Policy: " << mgapPolicy << std::endl << std::endl;
+  std::cout << "Using Policy: " << mapaPolicy << std::endl << std::endl;
 
   while (!jobList.empty() || !waitingJobs.empty() || !runningJobs.empty())
   {
@@ -175,7 +175,7 @@ void run(std::string jobsFilename, GpuSystem gpuSys, std::string mgapPolicy)
 
     if (waitingJobs.size())
     {
-      scheduleReadyJobs(mgapPolicy);
+      scheduleReadyJobs(mapaPolicy);
     }
 
     cycles++;

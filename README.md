@@ -17,9 +17,9 @@ The goal of this project is to study multi-GPU allocation/scheduling policies on
    a. Run simulations or real runs for all policies on an architecture.
       `$ ./launch-jobs.sh [--real | --sim] SYSTEM_ARCH JOBS_FILE`
    b. Run individually.
-      `$ ./mgapReal POLICY_NAME SYSTEM_ARCH JOBFILE`
-      `$ ./mgapSim POLICY_NAME SYSTEM_ARCH JOBFILE`
-5. If running real jobs (`mgapReal`), Caffe must be compiled with GCC <= 5.4.
+      `$ ./mapaReal POLICY_NAME SYSTEM_ARCH JOBFILE`
+      `$ ./mapaSim POLICY_NAME SYSTEM_ARCH JOBFILE`
+5. If running real jobs (`mapaReal`), Caffe must be compiled with GCC <= 5.4.
 
 ### Supported System Architectures (SYSTEM_ARCH)
 

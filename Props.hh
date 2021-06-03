@@ -180,7 +180,7 @@ struct JobItem
     arvlTime = boost::lexical_cast<long int>(*(++argsIt));
     srvcTime = boost::lexical_cast<long int>(*(++argsIt));
     bwSensitive = boost::lexical_cast<bool>(*(++argsIt));
-    taskToRun = *(++argsIt); // NOTE(Kiran): This is to be only used in MgapRealRun
+    taskToRun = *(++argsIt); // NOTE(Kiran): This is to be only used in MapaRealRun
     id = jid; // Size of the jobList at the time of creating this object.
     pid = -1; // Default to errNo. Write appropriate PID when necessary.
 

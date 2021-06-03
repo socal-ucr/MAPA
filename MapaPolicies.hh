@@ -1,5 +1,5 @@
-#ifndef MGAP_POLICIES_HH
-#define MGAP_POLICIES_HH
+#ifndef MAPA_POLICIES_HH
+#define MAPA_POLICIES_HH
 
 #include <iostream>
 #include <fstream>

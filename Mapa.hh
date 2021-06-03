@@ -1,5 +1,5 @@
-#ifndef MGAP_H
-#define MGAP_H
+#ifndef MAPA_H
+#define MAPA_H
 
 #include <iostream>
 #include <fstream>
@@ -11,9 +11,9 @@
 #include "Peregrine.hh"
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
-#include "MgapPolicies.hh"
+#include "MapaPolicies.hh"
 
-void parseArgs(int argc, char** argv, std::string& mgapPolicy, std::string& systemArch, std::string& jobsFilename)
+void parseArgs(int argc, char** argv, std::string& mapaPolicy, std::string& systemArch, std::string& jobsFilename)
 {
   if ((argc < 4) || (argc > 4))
   {
@@ -21,16 +21,16 @@ void parseArgs(int argc, char** argv, std::string& mgapPolicy, std::string& syst
     exit(0);
   }
 
-  mgapPolicy = argv[1];
+  mapaPolicy = argv[1];
   systemArch = argv[2];
   jobsFilename = argv[argc - 1];
 }
 
-Allocation choosePattern(PatternVec &patterns, JobItem job, std::string mgapPolicy)
+Allocation choosePattern(PatternVec &patterns, JobItem job, std::string mapaPolicy)
 {
   if (!patterns.empty())
   {
-    return policyMap[mgapPolicy](patterns, job);
+    return policyMap[mapaPolicy](patterns, job);
   }
   else
   {

@@ -10,11 +10,11 @@ cmd=""
 prefix=""
 if [ $1 == "--sim" ]
 then
-    cmd="./mgapSim"
+    cmd="./MapaSim"
     prefix="sim"
 elif [ $1 == "--real" ]
 then
-    cmd="./mgapReal"
+    cmd="./MapaReal"
     prefix="real"
 fi
 

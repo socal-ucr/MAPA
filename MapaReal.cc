@@ -1,19 +1,19 @@
 #include <iostream>
 #include <string>
 
-#include "MgapReal.hh"
+#include "MapaReal.hh"
 
 int main(int argc, char **argv)
 {
-  std::string mgapPolicy;
+  std::string mapaPolicy;
   std::string systemArch;
   std::string jobsFilename;
 
-  parseArgs(argc, argv, mgapPolicy, systemArch, jobsFilename);
+  parseArgs(argc, argv, mapaPolicy, systemArch, jobsFilename);
 
   auto gpuSys = GpuSystem(systemArch);
 
-  run(jobsFilename, gpuSys, mgapPolicy);
+  run(jobsFilename, gpuSys, mapaPolicy);
 
   return (0);
 }
