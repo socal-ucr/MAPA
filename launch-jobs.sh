@@ -5,7 +5,7 @@ if [ "$#" -ne 3 ]; then
     exit
 fi
 
-Policy="baselineV1 baselineV2 LASTgreedy LASTpreserve LASTpreserveRoute LASTgreedyRoute"
+Policy="baselineV1 baselineV2 LASTgreedy LASTpreserve"
 cmd=""
 prefix=""
 if [ $1 == "--sim" ]
@@ -19,5 +19,5 @@ then
 fi
 
 for pol in $Policy; do
-    $cmd $pol $2 $3 >> "${prefix}_$3_StdOut.txt" 2>&1
+    $cmd $pol $2 $3
 done
