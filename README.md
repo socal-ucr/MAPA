@@ -22,6 +22,7 @@ The goal of this project is to study multi-GPU allocation/scheduling policies on
       `$ ./launch-jobs.sh [--real | --sim] SYSTEM_ARCH JOBS_FILE`
 
    c. Run individually.
+
       `$ ./MapaReal POLICY_NAME SYSTEM_ARCH JOBFILE`
 
       `$ ./MapaSim POLICY_NAME SYSTEM_ARCH JOBFILE`
