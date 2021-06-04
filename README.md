@@ -41,9 +41,9 @@ Simulation Runs: DGX-V, DGX-P, Summit, Torus-2d, CubeMesh-16.
 
 ### Custom accelerator topologies and allocation policies
 
-If you intend to add your own accelerator topologies in [GpuTopology.hh](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh):
+If you intend to add your own accelerator topologies in [GpuTopology.hh](https://github.com/socal-ucr/MAPA/blob/master/src/GpuTopology.hh):
 
-1. Specify the topology connections like shown [here](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh#L65-L103)
-2. Specify the weights of each edge as shown [here](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh#L185-L238)
+1. Specify the topology connections like shown [here](https://github.com/socal-ucr/MAPA/blob/master/src/GpuTopology.hh#L65-L103)
+2. Specify the weights of each edge as shown [here](https://github.com/socal-ucr/MAPA/blob/master/src/GpuTopology.hh#L185-L238)
 
-Custom policies can be added to [MapaPolicies.hh](https://github.com/socal-ucr/MAPA/blob/master/MapaPolicies.hh).
+Custom policies can be added to [MapaPolicies.hh](https://github.com/socal-ucr/MAPA/blob/master/src/MapaPolicies.hh).
