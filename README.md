@@ -29,7 +29,7 @@ The goal of this project is to study multi-GPU allocation/scheduling policies on
 
       `POLICY_NAME` can be `baseline`, `topoAware`, `greedy`, or `preserve`.
 
-      `SYSTEM_ARCH` can be `dgx-v`, `dgx-p`, `summit`, `torus-2d`, or `cubeMesh-16`. For more information, refer to Supported System Architectures.
+      `SYSTEM_ARCH` can be `dgx-v`, `dgx-p`, `summit`, `torus-2d`, or `cubeMesh-16`. For more information, refer to [Supported System Architectures](https://github.com/socal-ucr/MAPA#supported-system-architectures-system_arch).
 
 5. To run real jobs (`MapaReal`), Caffe must be compiled with GCC <= 5.4.
 
@@ -43,7 +43,7 @@ Simulation Runs: DGX-V, DGX-P, Summit, Torus-2d, CubeMesh-16.
 
 If you intend to add your own accelerator topologies in [GpuTopology.hh](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh):
 
-1. Specify the topology connections like shown [here](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh#L56-L94)
-2. Specify the weights of each edge as shown [here](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh#L191-L227)
+1. Specify the topology connections like shown [here](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh#L65-L103)
+2. Specify the weights of each edge as shown [here](https://github.com/socal-ucr/MAPA/blob/master/GpuTopology.hh#L185-L238)
 
 Custom policies can be added to [MapaPolicies.hh](https://github.com/socal-ucr/MAPA/blob/master/MapaPolicies.hh).
