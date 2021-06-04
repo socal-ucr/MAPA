@@ -6,12 +6,12 @@ BLISS_LDFLAGS=-L$(ROOT_DIR)/core/bliss-0.73/ -lbliss
 
 all: MapaSim MapaReal
 
-MapaSim: MapaSim.cc $(OBJ) bliss
-	$(CC) MapaSim.cc $(OBJ) -o $@ $(BLISS_LDFLAGS) $(LDFLAGS) $(CFLAGS)
+MapaSim: src/MapaSim.cc $(OBJ) bliss
+	$(CC) src/MapaSim.cc $(OBJ) -o $@ $(BLISS_LDFLAGS) $(LDFLAGS) $(CFLAGS)
 
 
-MapaReal: MapaReal.cc $(OBJ) bliss
-	$(CC) MapaReal.cc $(OBJ) -o $@ $(BLISS_LDFLAGS) $(LDFLAGS) $(CFLAGS)
+MapaReal: src/MapaReal.cc $(OBJ) bliss
+	$(CC) src/MapaReal.cc $(OBJ) -o $@ $(BLISS_LDFLAGS) $(LDFLAGS) $(CFLAGS)
 
 bliss:
 	make -C peregrine/core/bliss-0.73
