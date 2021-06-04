@@ -64,10 +64,10 @@ Allocation LASTgreedyMax(PatternVec& patterns, JobItem job)
   return alloc;
 }
 
-Allocation LASTgreedy(PatternVec& patterns, JobItem job)
+Allocation greedy(PatternVec& patterns, JobItem job)
 {
   Allocation alloc = {};
-  logging("Iterating through Patterns in LASTgreedy policy");
+  logging("Iterating through Patterns in greedy policy");
 
   if ((job.numGpus == 1) && patterns.size())
   {
@@ -81,11 +81,11 @@ Allocation LASTgreedy(PatternVec& patterns, JobItem job)
   return alloc;
 }
 
-Allocation LASTpreserve(PatternVec &patterns, JobItem job)
+Allocation preserve(PatternVec &patterns, JobItem job)
 {
   Allocation alloc = {};
 
-  logging("Iterating through Patterns in LASTpreserve policy");
+  logging("Iterating through Patterns in preserve policy");
 
   if ((job.bwSensitive) && (job.numGpus > 1))
   {
@@ -99,11 +99,11 @@ Allocation LASTpreserve(PatternVec &patterns, JobItem job)
   return alloc;
 }
 
-Allocation LASTminScore(PatternVec &patterns, JobItem job)
+Allocation minScore(PatternVec &patterns, JobItem job)
 {
   Allocation alloc = {};
 
-  logging("Iterating through Patterns in LASTpreserve policy");
+  logging("Iterating through Patterns in preserve policy");
 
   if ((job.bwSensitive) && (job.numGpus > 1))
   {
@@ -121,7 +121,7 @@ Allocation LASTminScore(PatternVec &patterns, JobItem job)
   return alloc;
 }
 
-Allocation LASTgreedyRoute(PatternVec &patterns, JobItem job)
+Allocation greedyRoute(PatternVec &patterns, JobItem job)
 {
   Allocation alloc;
   alloc.lastScore = 0;
@@ -150,7 +150,7 @@ Allocation LASTgreedyRoute(PatternVec &patterns, JobItem job)
   return alloc;
 }
 
-Allocation LASTpreserveRoute(PatternVec& patterns, JobItem job)
+Allocation preserveRoute(PatternVec& patterns, JobItem job)
 {
   Allocation alloc;
   alloc.lastScore = 0;
@@ -160,7 +160,7 @@ Allocation LASTpreserveRoute(PatternVec& patterns, JobItem job)
 
   if (job.bwSensitive)
   {
-    alloc = LASTgreedyRoute(patterns, job);
+    alloc = greedyRoute(patterns, job);
   }
   else
   {
@@ -273,11 +273,11 @@ Allocation topoAware(PatternVec& patterns, JobItem job)
 }
 
 std::map<std::string, std::function<Allocation(PatternVec &, JobItem)>> policyMap =
-    {{"LASTgreedy", [](PatternVec &patterns, JobItem job) { return LASTgreedy(patterns, job); }},
-     {"LASTminScore", [](PatternVec &patterns, JobItem job) { return LASTminScore(patterns, job); }},
-     {"LASTgreedyRoute", [](PatternVec &patterns, JobItem job) { return LASTgreedyRoute(patterns, job); }},
-     {"LASTpreserve", [](PatternVec &patterns, JobItem job) { return LASTpreserve(patterns, job); }},
-     {"LASTpreserveRoute", [](PatternVec &patterns, JobItem job) { return LASTpreserveRoute(patterns, job); }},
+    {{"greedy", [](PatternVec &patterns, JobItem job) { return greedy(patterns, job); }},
+     {"minScore", [](PatternVec &patterns, JobItem job) { return minScore(patterns, job); }},
+     {"greedyRoute", [](PatternVec &patterns, JobItem job) { return greedyRoute(patterns, job); }},
+     {"preserve", [](PatternVec &patterns, JobItem job) { return preserve(patterns, job); }},
+     {"preserveRoute", [](PatternVec &patterns, JobItem job) { return preserveRoute(patterns, job); }},
      {"baseline", [](PatternVec &patterns, JobItem job) { return baseline(patterns, job); }},
      {"topoAware", [](PatternVec &patterns, JobItem job) { return topoAware(patterns, job); }}};
 

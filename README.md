@@ -27,6 +27,10 @@ The goal of this project is to study multi-GPU allocation/scheduling policies on
 
       `$ ./MapaSim POLICY_NAME SYSTEM_ARCH JOBFILE`
 
+      `POLICY_NAME` can be `baseline`, `topoAware`, `greedy`, or `preserve`.
+
+      `SYSTEM_ARCH` can be `dgx-v`, `dgx-p`, `summit`, `torus-2d`, or `cubeMesh-16`. For more information, refer to Supported System Architectures.
+
 5. To run real jobs (`MapaReal`), Caffe must be compiled with GCC <= 5.4.
 
 ### Supported System Architectures (SYSTEM_ARCH)
