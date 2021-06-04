@@ -55,7 +55,7 @@ uint32_t getNumGpusPerNode(std::string topoName)
   {
     return 16;
   }
-  if (topoName == "mesh")
+  if (topoName == "cubeMesh-16")
   {
     return 16;
   }
@@ -404,7 +404,7 @@ BwMap getBwMat(std::string sysName, bool nvlinks = true, bool pcilinks = true)
     }
   }
 
-  else if (sysName == "mesh")
+  else if (sysName == "cubeMesh-16")
   {
     if (nvlinks)
     {
@@ -509,7 +509,7 @@ std::map<uint32_t, uint32_t> getIdealLastScore(std::string arch)
     idealLscore[5] = 210;
     idealLscore[6] = 260;
   }
-  else if (arch == "mesh")
+  else if (arch == "cubeMesh-16")
   {
     // TODO(kiran): Not verified.
     idealLscore[2] = 100;

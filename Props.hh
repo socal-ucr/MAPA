@@ -73,7 +73,7 @@ struct GpuSystem
     {
       topology = torus2dMesh();
     }
-    else if (arch == "mesh")
+    else if (arch == "cubeMesh-16")
     {
       topology = cube16Mesh();
     }

@@ -198,7 +198,7 @@ Allocation LASTpreserveRoute(PatternVec& patterns, JobItem job)
   return alloc;
 }
 
-Allocation baselineV1(PatternVec& patterns, JobItem job)
+Allocation baseline(PatternVec& patterns, JobItem job)
 {
   // Pass any available alloc based on smallest/available ID.
   Allocation alloc = {};
@@ -228,9 +228,9 @@ Allocation baselineV1(PatternVec& patterns, JobItem job)
   return alloc;
 }
 
-Allocation baselineV2(PatternVec& patterns, JobItem job)
+Allocation topoAware(PatternVec& patterns, JobItem job)
 {
-  // Pass an alloc in the same PCIe root complex, if none fallback to baselineV1.
+  // Pass an alloc in the same PCIe root complex, if none fallback to baseline.
   Allocation alloc = {};
   if ((job.numGpus == 1) && patterns.size())
   {
@@ -266,7 +266,7 @@ Allocation baselineV2(PatternVec& patterns, JobItem job)
           }
         }
       }
-      return baselineV1(patterns, job);
+      return baseline(patterns, job);
     }
   }
   return alloc;
@@ -278,7 +278,7 @@ std::map<std::string, std::function<Allocation(PatternVec &, JobItem)>> policyMa
      {"LASTgreedyRoute", [](PatternVec &patterns, JobItem job) { return LASTgreedyRoute(patterns, job); }},
      {"LASTpreserve", [](PatternVec &patterns, JobItem job) { return LASTpreserve(patterns, job); }},
      {"LASTpreserveRoute", [](PatternVec &patterns, JobItem job) { return LASTpreserveRoute(patterns, job); }},
-     {"baselineV1", [](PatternVec &patterns, JobItem job) { return baselineV1(patterns, job); }},
-     {"baselineV2", [](PatternVec &patterns, JobItem job) { return baselineV2(patterns, job); }}};
+     {"baseline", [](PatternVec &patterns, JobItem job) { return baseline(patterns, job); }},
+     {"topoAware", [](PatternVec &patterns, JobItem job) { return topoAware(patterns, job); }}};
 
 #endif
