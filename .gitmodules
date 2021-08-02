@@ -1,9 +1,12 @@
 [submodule "jobGenerator"]
 	path = jobGenerator
-	url = git@github.com:socal-ucr/jobGenerator.git
+	url = https://github.com/socal-ucr/jobGenerator
 [submodule "peregrine"]
 	path = peregrine
-	url = git@github.com:socal-ucr/peregrine.git
+	url = https://github.com/socal-ucr/peregrine
 [submodule "caffe"]
 	path = caffe
-	url = git@github.com:socal-ucr/caffe.git
+	url = https://github.com/socal-ucr/caffe
+[submodule "unittest-cpp"]
+	path = unittest-cpp
+	url = https://github.com/socal-ucr/unittest-cpp
