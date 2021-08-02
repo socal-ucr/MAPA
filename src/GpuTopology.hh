@@ -37,6 +37,8 @@ using BwMap = std::map<uint32_t, std::map<uint32_t, BW>>;
 using RouteBWmap = std::map<uint32_t, std::map<uint32_t, uint32_t>>;
 using numGpuMat = std::map<std::string, uint32_t>;
 
+uint32_t numGpusPerNode;
+
 uint32_t getNumGpusPerNode(std::string topoName)
 {
   if (topoName == "dgx-v")
@@ -64,6 +66,7 @@ uint32_t getNumGpusPerNode(std::string topoName)
 
 SmallGraph cubemesh(bool nvlinks = true, bool pcilinks = true)
 {
+  numGpusPerNode = 4;
   std::vector<std::pair<uint32_t, uint32_t>> edge_list;
   if (nvlinks)
   {
@@ -104,6 +107,7 @@ SmallGraph cubemesh(bool nvlinks = true, bool pcilinks = true)
 
 SmallGraph summitmesh(bool nvlinks = true, bool pcilinks = true)
 {
+  numGpusPerNode = 3;
   std::vector<std::pair<uint32_t, uint32_t>> edge_list;
   if (nvlinks)
   {
@@ -131,6 +135,7 @@ SmallGraph summitmesh(bool nvlinks = true, bool pcilinks = true)
 
 SmallGraph torus2dMesh(bool nvlinks = true, bool pcilinks = true)
 {
+  numGpusPerNode = 4;
   std::vector<std::pair<uint32_t, uint32_t>> edge_list;
   if (nvlinks)
   {
@@ -184,6 +189,7 @@ SmallGraph torus2dMesh(bool nvlinks = true, bool pcilinks = true)
 
 SmallGraph cube16Mesh(bool nvlinks = true, bool pcilinks = true)
 {
+  numGpusPerNode = 4;
   std::vector<std::pair<uint32_t, uint32_t>> edge_list;
   if (nvlinks)
   {

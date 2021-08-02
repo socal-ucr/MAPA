@@ -12,6 +12,9 @@
 #include "GpuTopology.hh"
 #include "TopoUtils.hh"
 
+extern uint32_t numGpusPerNode;
+extern SmallGraph hwTopo;
+
 Allocation preserveScoreMax(PatternVec& patterns, JobItem job)
 {
   Allocation alloc = {};
@@ -228,6 +231,22 @@ Allocation baseline(PatternVec& patterns, JobItem job)
   return alloc;
 }
 
+bool patternSpreadOut(uint32_t initial, uint32_t test)
+{
+  uint32_t numVertices = hwTopo.num_vertices();
+  uint32_t cmp = 0;
+  for (uint32_t start=1; start < numVertices; start += numGpusPerNode)
+  {
+    if ((initial >= start) && (initial < start + numGpusPerNode))
+    {
+      cmp = start;
+      break;
+    }
+  }
+  
+  return ((test < cmp) || (test >= cmp + numGpusPerNode));
+}
+
 Allocation topoAware(PatternVec& patterns, JobItem job)
 {
   // Pass an alloc in the same PCIe root complex, if none fallback to baseline.
@@ -240,14 +259,14 @@ Allocation topoAware(PatternVec& patterns, JobItem job)
   {
     if (patterns.size())
     {
-      if (job.numGpus < 5)
+      if (job.numGpus < numGpusPerNode)
       {
         for (auto &pattern : patterns)
         {
           logging(pattern);
           for (auto node : pattern)
           {
-            if (((pattern[0] < 5) && (node > 4)) || ((pattern[0] > 4) && (node < 5)))
+            if (patternSpreadOut(pattern[0], node))
             {
               break;
             }
