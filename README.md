@@ -12,18 +12,12 @@ The goal of this project is to study multi-GPU allocation/scheduling policies on
 1. Source environment variables.
       `$ source set_env.sh`
 2. `$ make`.
-3. `$ ./generateJobs`.
-4. Run Jobs.
+3. Run Jobs.
 
    a. Generate JobFile.
-      `$ ./generateJobs JOBS_FILE`
+      `$ ./generateJobs JOBFILE`
 
-   b. Run simulations or real runs for all policies on an architecture.
-      `$ ./launch-jobs.sh [--real | --sim] SYSTEM_ARCH JOBS_FILE`
-
-   c. Run individually.
-
-      `$ ./MapaReal POLICY_NAME SYSTEM_ARCH JOBFILE`
+   b. Run simulations individually.
 
       `$ ./MapaSim POLICY_NAME SYSTEM_ARCH JOBFILE`
 
@@ -31,7 +25,12 @@ The goal of this project is to study multi-GPU allocation/scheduling policies on
 
       `SYSTEM_ARCH` can be `dgx-v`, `dgx-p`, `summit`, `torus-2d`, or `cubeMesh-16`. For more information, refer to [Supported System Architectures](https://github.com/socal-ucr/MAPA#supported-system-architectures-system_arch).
 
-5. To run real jobs (`MapaReal`), Caffe must be compiled with GCC <= 5.4.
+4. To run real jobs (`MapaReal`), Caffe must be compiled with GCC <= 5.4.
+
+      `$ ./MapaReal POLICY_NAME SYSTEM_ARCH JOBFILE`
+
+5. To run simulations or real runs for all policies on an architecture.
+      `$ ./launch-jobs.sh [--real | --sim] SYSTEM_ARCH JOBS_FILE`
 
 ### Supported System Architectures (SYSTEM_ARCH)
 
